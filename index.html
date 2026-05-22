@@ -191,7 +191,7 @@ const CATEGORIES = ["Småretter","Hovedretter","Snacks","Dessert"];
 
 /* ═══════════════════════════ UTILITIES ═══════════════════════════ */
 
-const resizeImage = (dataUrl, maxPx = 1600) => new Promise(resolve => {
+const resizeImage = (dataUrl, maxPx = 1280) => new Promise(resolve => {
   const img = new Image();
   img.onload = () => {
     let { width: w, height: h } = img;
@@ -207,50 +207,21 @@ const resizeImage = (dataUrl, maxPx = 1600) => new Promise(resolve => {
   img.src = dataUrl;
 });
 
-const analyzeImage = async (base64, mime, apiKey) => {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+const analyzeImage = async (base64, mime) => {
+  const res = await fetch('/api/analyze', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 150,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
-          { type: 'text', text: `Du er en streng matfoto-kvalitetssjekker for en eksklusiv restaurant-app. Analyser bildet nøye.
-
-GODKJENNINGSKRAV – ALLE må oppfylles:
-1. Mat er tydelig hovedmotivet og godt synlig i bildet
-2. Bildet er skarpt og ikke uskarp/blurry
-3. Ingen fingre, hender eller fremmede objekter dekker maten
-4. God nok belysning til å se maten tydelig
-5. Bildet ser appetittvekkende og presentabelt ut
-
-Svar KUN med gyldig JSON – ingenting annet:
-{"godkjent": true/false, "grunn": "maks 10 ord på norsk"}` }
-        ]
-      }]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base64, mime })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    if (res.status === 401) throw new Error('Ugyldig API-nøkkel');
     if (res.status === 429) throw new Error('For mange forespørsler – vent litt og prøv igjen');
-    throw new Error(err.error?.message || `Serverfeil (${res.status})`);
+    if (res.status === 503) throw new Error('AI-tjenesten er ikke tilgjengelig akkurat nå');
+    throw new Error(err.error || `Feil (${res.status})`);
   }
 
-  const data = await res.json();
-  const text = (data.content?.[0]?.text || '').trim();
-  const match = text.match(/\{[\s\S]*?\}/);
-  if (!match) throw new Error('Uventet svar fra AI – prøv igjen');
-  return JSON.parse(match[0]);
+  return await res.json();
 };
 
 /* ═══════════════════════════ ICONS ═══════════════════════════ */
@@ -263,12 +234,6 @@ const IconBack = () => (
 const IconSearch = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="1.8" strokeLinecap="round">
     <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-  </svg>
-);
-const IconSettings = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 );
 const IconClose = () => (
@@ -320,134 +285,6 @@ const GoldSpinner = ({ size = 44, label = "LASTER OPP…" }) => (
   </div>
 );
 
-/* ═══════════════════════════ API KEY MODAL ═══════════════════════════ */
-
-const ApiKeyModal = ({ onSave, onClose }) => {
-  const [key,   setKey]   = useState('');
-  const [show,  setShow]  = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSave = () => {
-    const k = key.trim();
-    if (!k) { setError('Skriv inn din API-nøkkel'); return; }
-    if (!k.startsWith('sk-ant-')) {
-      setError('Nøkkelen skal starte med "sk-ant-api03-…"');
-      return;
-    }
-    onSave(k);
-  };
-
-  return (
-    <div
-      className="anim-fade-in"
-      style={{ position:"fixed", inset:0, zIndex:500, background:"rgba(0,0,0,0.88)", display:"flex", alignItems:"flex-end" }}
-      onClick={e => e.target === e.currentTarget && onClose()}
-    >
-      <div className="anim-slide-up" style={{
-        width:"100%", background:"#141414",
-        borderRadius:"22px 22px 0 0",
-        border:"1px solid rgba(212,175,55,0.3)", borderBottom:"none",
-        overflow:"hidden"
-      }}>
-        {/* Gold top stripe */}
-        <div style={{ height:3, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
-
-        <div style={{ padding:"28px 24px 40px" }}>
-          {/* Drag handle */}
-          <div style={{ width:40, height:4, background:"#333", borderRadius:2, margin:"0 auto 24px" }} />
-
-          {/* Icon */}
-          <div style={{ textAlign:"center", marginBottom:16 }}>
-            <div style={{
-              display:"inline-flex", alignItems:"center", justifyContent:"center",
-              width:60, height:60, borderRadius:"50%",
-              background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)"
-            }}>
-              <span style={{ fontSize:28 }}>🤖</span>
-            </div>
-          </div>
-
-          <h3 style={{ color:"#fff", fontSize:20, fontWeight:700, textAlign:"center", margin:"0 0 8px", letterSpacing:"0.02em" }}>
-            AI-bildegodkjenning
-          </h3>
-          <p style={{ color:"#666", fontSize:13, textAlign:"center", lineHeight:1.6, margin:"0 0 24px" }}>
-            Dishy bruker <span style={{ color:"#D4AF37" }}>Claude AI</span> for å sikre at kun<br />
-            skarpe, appetittvekkende matbilder godkjennes.
-          </p>
-
-          {/* Input */}
-          <p style={{ color:"#555", fontSize:11, letterSpacing:"0.13em", textTransform:"uppercase", margin:"0 0 8px", fontWeight:600 }}>
-            Anthropic API-nøkkel
-          </p>
-          <div style={{ position:"relative", marginBottom:8 }}>
-            <input
-              type={show ? "text" : "password"}
-              value={key}
-              onChange={e => { setKey(e.target.value); setError(''); }}
-              onKeyDown={e => e.key === 'Enter' && handleSave()}
-              placeholder="sk-ant-api03-..."
-              autoComplete="off"
-              style={{
-                width:"100%", padding:"13px 46px 13px 14px",
-                background:"#0D0D0D",
-                border:`1px solid ${error ? "rgba(255,80,80,0.6)" : "rgba(212,175,55,0.25)"}`,
-                borderRadius:12, color:"#fff", fontSize:14,
-                fontFamily:"'Courier New', monospace",
-                transition:"border-color 0.2s"
-              }}
-            />
-            <button
-              onClick={() => setShow(s => !s)}
-              style={{
-                position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-                background:"none", border:"none", cursor:"pointer",
-                fontSize:16, lineHeight:1
-              }}
-            >
-              {show ? "🙈" : "👁️"}
-            </button>
-          </div>
-          {error && (
-            <p style={{ color:"#ff6b6b", fontSize:12, margin:"0 0 8px" }}>{error}</p>
-          )}
-          <p style={{ color:"#3a3a3a", fontSize:11, margin:"0 0 24px", lineHeight:1.5 }}>
-            Lagres kun lokalt i nettleseren din. Hent gratis nøkkel fra Anthropic Console.
-          </p>
-
-          {/* CTA */}
-          <button
-            onClick={handleSave}
-            style={{
-              width:"100%", padding:"16px",
-              background: key ? "#D4AF37" : "#222",
-              border:"none", borderRadius:13,
-              cursor: key ? "pointer" : "default",
-              fontSize:14, fontWeight:800,
-              color: key ? "#0D0D0D" : "#444",
-              letterSpacing:"0.04em",
-              transition:"background 0.2s, color 0.2s",
-              display:"flex", alignItems:"center", justifyContent:"center", gap:8
-            }}
-          >
-            <IconCamera />
-            Lagre og åpne kamera
-          </button>
-
-          <button
-            onClick={onClose}
-            style={{
-              width:"100%", padding:"12px", marginTop:10,
-              background:"transparent", border:"none", cursor:"pointer",
-              fontSize:13, color:"#444"
-            }}
-          >
-            Avbryt
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 /* ═══════════════════════════ IMAGE UPLOAD MODAL ═══════════════════════════ */
 
@@ -459,11 +296,10 @@ const STAGES = [
   { emoji:"🤖", label:"Fullfører AI-validering…" },
 ];
 
-const ImageUploadModal = ({ dish, restaurantName, apiKey, imageData, onRetake, onApproved, onClose, onBadKey }) => {
-  const [phase,    setPhase]    = useState('preview'); // preview | analyzing | rejected
+const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApproved, onClose }) => {
+  const [phase,    setPhase]    = useState('preview');
   const [stageIdx, setStageIdx] = useState(0);
   const [reason,   setReason]   = useState('');
-  const [prevKey,  setPrevKey]  = useState(stageIdx); // for animation key
 
   const analyze = async () => {
     setPhase('analyzing');
@@ -473,11 +309,10 @@ const ImageUploadModal = ({ dish, restaurantName, apiKey, imageData, onRetake, o
     const timer = setInterval(() => {
       idx = Math.min(idx + 1, STAGES.length - 1);
       setStageIdx(idx);
-      setPrevKey(idx);
     }, 750);
 
     try {
-      const result = await analyzeImage(imageData.base64, imageData.mime, apiKey);
+      const result = await analyzeImage(imageData.base64, imageData.mime);
       clearInterval(timer);
       setStageIdx(STAGES.length - 1);
 
@@ -489,12 +324,8 @@ const ImageUploadModal = ({ dish, restaurantName, apiKey, imageData, onRetake, o
       }
     } catch (err) {
       clearInterval(timer);
-      if (err.message === 'Ugyldig API-nøkkel') {
-        onBadKey();
-      } else {
-        setReason(err.message);
-        setPhase('rejected');
-      }
+      setReason(err.message);
+      setPhase('rejected');
     }
   };
 
@@ -754,7 +585,7 @@ const ImageUploadModal = ({ dish, restaurantName, apiKey, imageData, onRetake, o
 
 /* ═══════════════════════════ SCREEN 1: DISCOVER ═══════════════════════════ */
 
-const DiscoverScreen = ({ restaurants, onSelect, onSettings }) => (
+const DiscoverScreen = ({ restaurants, onSelect }) => (
   <div style={{ background:"#0D0D0D", minHeight:"100vh" }}>
     {/* Header */}
     <div style={{
@@ -770,17 +601,9 @@ const DiscoverScreen = ({ restaurants, onSelect, onSettings }) => (
         </h1>
         <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.5 }} />
       </div>
-      <div style={{ display:"flex", gap:8 }}>
-        <button
-          onClick={onSettings}
-          style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #222", borderRadius:10, padding:"7px 8px", display:"flex", alignItems:"center" }}
-        >
-          <IconSettings />
-        </button>
-        <button style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}>
-          <IconSearch />
-        </button>
-      </div>
+      <button style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}>
+        <IconSearch />
+      </button>
     </div>
 
     {/* Tagline */}
@@ -1220,11 +1043,8 @@ const App = () => {
   const [totalPoints,        setTotalPoints]        = useState(0);
   const [showToast,          setShowToast]          = useState(false);
 
-  // AI upload flow
-  const [apiKey,          setApiKey]         = useState(() => localStorage.getItem('dishy_apikey') || '');
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [capturedImage,   setCapturedImage]  = useState(null); // { preview, base64, mime }
-  const [showImageModal,  setShowImageModal] = useState(false);
+  const [capturedImage,  setCapturedImage]  = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -1269,20 +1089,7 @@ const App = () => {
 
   const handleCloseDish = () => setSelectedDish(null);
 
-  const handleUploadClick = () => {
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-    } else {
-      openFilePicker();
-    }
-  };
-
-  const handleSaveApiKey = key => {
-    localStorage.setItem('dishy_apikey', key);
-    setApiKey(key);
-    setShowApiKeyModal(false);
-    setTimeout(openFilePicker, 120);
-  };
+  const handleUploadClick = () => openFilePicker();
 
   const handleFileSelected = async e => {
     const file = e.target.files[0];
@@ -1319,14 +1126,6 @@ const App = () => {
     setCapturedImage(null);
   };
 
-  const handleBadKey = () => {
-    setShowImageModal(false);
-    setCapturedImage(null);
-    localStorage.removeItem('dishy_apikey');
-    setApiKey('');
-    setTimeout(() => setShowApiKeyModal(true), 350);
-  };
-
   const handleUseCoupon = () => {
     setShowCoupon(false);
     setSelectedDish(null);
@@ -1340,9 +1139,6 @@ const App = () => {
     setShowCoupon(false);
     setSelectedDish(null);
   };
-
-  // Show settings: clear API key to re-prompt
-  const handleSettings = () => setShowApiKeyModal(true);
 
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" }}>
@@ -1375,7 +1171,6 @@ const App = () => {
         <DiscoverScreen
           restaurants={restaurantsWithState}
           onSelect={handleSelectRestaurant}
-          onSettings={handleSettings}
         />
       )}
       {screen === 'restaurant' && currentRestaurant && !showImageModal && (
@@ -1396,25 +1191,15 @@ const App = () => {
         />
       )}
 
-      {/* API key modal */}
-      {showApiKeyModal && !showImageModal && (
-        <ApiKeyModal
-          onSave={handleSaveApiKey}
-          onClose={() => setShowApiKeyModal(false)}
-        />
-      )}
-
       {/* Image upload + AI validation modal */}
       {showImageModal && capturedImage && (
         <ImageUploadModal
           dish={selectedDish}
           restaurantName={selectedRestaurant?.name}
-          apiKey={apiKey}
           imageData={capturedImage}
           onRetake={handleRetake}
           onApproved={handleApproved}
           onClose={handleCloseImageModal}
-          onBadKey={handleBadKey}
         />
       )}
 
