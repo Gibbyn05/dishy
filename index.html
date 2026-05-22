@@ -9,134 +9,100 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            gold:        '#D4AF37',
-            'gold-dim':  '#9A7D22',
-            'gold-glow': '#F0D060',
-            'app-bg':    '#0D0D0D',
-            'card-bg':   '#1A1A1A',
-            'card-bg2':  '#242424',
-            'muted':     '#888888',
-          },
-          fontFamily: {
-            sans: ['-apple-system','BlinkMacSystemFont','"Segoe UI"','Roboto','sans-serif'],
-          },
-        }
-      }
-    }
-  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; padding: 0; background: #0D0D0D; overscroll-behavior: none; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-
-    /* Hide scrollbars */
     ::-webkit-scrollbar { display: none; }
     * { scrollbar-width: none; }
 
-    /* Smooth scroll */
-    .scroll-smooth { scroll-behavior: smooth; }
-
-    /* Animations */
     @keyframes spin        { to { transform: rotate(360deg); } }
     @keyframes slideUp     { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes slideDown   { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes fadeIn      { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes scalePop    { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.04); } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes goldShimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
-    @keyframes pulseGold   { 0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.3); } 50% { box-shadow: 0 0 0 10px rgba(212,175,55,0); } }
+    @keyframes scalePop    { 0% { transform: scale(0.82); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes goldShimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.4); } }
+    @keyframes pulseGold   { 0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.35); } 50% { box-shadow: 0 0 0 10px rgba(212,175,55,0); } }
+    @keyframes scanLine    { 0% { top: 0; } 100% { top: 100%; } }
+    @keyframes checkDraw   { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
+    @keyframes stageFade   { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    .anim-spin        { animation: spin 1s linear infinite; }
+    .anim-spin        { animation: spin 0.9s linear infinite; }
     .anim-slide-up    { animation: slideUp 0.42s cubic-bezier(0.16,1,0.3,1) forwards; }
-    .anim-slide-down  { animation: slideDown 0.3s ease forwards; }
     .anim-fade-in     { animation: fadeIn 0.35s ease forwards; }
     .anim-scale-pop   { animation: scalePop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
     .anim-gold-shimmer{ animation: goldShimmer 2.5s ease infinite; }
     .anim-pulse-gold  { animation: pulseGold 1.8s ease infinite; }
+    .anim-stage-fade  { animation: stageFade 0.4s ease forwards; }
+    .scan-line        { animation: scanLine 1.8s linear infinite; }
 
-    /* Gold gradient text */
     .gold-text-gradient {
       background: linear-gradient(135deg, #C5A028 0%, #F0D060 45%, #C5A028 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-
-    /* Card hover glow */
-    .card-hover { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+    .card-hover { transition: transform 0.16s ease, box-shadow 0.16s ease; }
     .card-hover:active { transform: scale(0.97); box-shadow: 0 0 0 1.5px #D4AF37; }
 
-    /* Gold border glow */
-    .gold-border-glow { box-shadow: 0 0 12px rgba(212,175,55,0.25); }
-
-    /* Backdrop */
-    .backdrop { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    input:focus { outline: none; }
+    input::placeholder { color: #444; }
   </style>
 </head>
 <body>
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const { useState, useEffect, useRef } = React;
 
-/* ─────────────────────────── DATA ─────────────────────────── */
+/* ═══════════════════════════ DATA ═══════════════════════════ */
 
 const RESTAURANTS = [
   {
-    id: 1,
-    name: "Molde Fjordstuer",
-    distance: "250m unna",
-    cuisine: "Norsk Fine Dining",
+    id: 1, name: "Molde Fjordstuer", distance: "250m unna", cuisine: "Norsk Fine Dining",
     bg: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&auto=format&fit=crop&q=80",
     menu: {
       Småretter: [
-        { id:101, name:"Kamskjell med blomkålkrem",    price:"195,-", rating:4.9, reviews:22, uploaded:false,
+        { id:101, name:"Kamskjell med blomkålkrem",  price:"195,-", rating:4.9, reviews:22, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
           ingredients:"Kamskjell, blomkål, smør, gressløk, hvitvin, sitronsaft. Allergener: Bløtdyr, Melk." },
-        { id:102, name:"Tartare av reinsdyr",          price:"175,-", rating:4.7, reviews:15, uploaded:false,
+        { id:102, name:"Tartare av reinsdyr",        price:"175,-", rating:4.7, reviews:15, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1544025162-d76538890891?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1544025162-d76538890891?w=900&auto=format&fit=crop",
           ingredients:"Reinsdyrkjøtt, dijonsennep, kapers, sjalottløk, vaktelplomme. Allergener: Egg." },
-        { id:103, name:"Gratinerte blåskjell",         price:"155,-", rating:4.6, reviews:31, uploaded:false,
+        { id:103, name:"Gratinerte blåskjell",       price:"155,-", rating:4.6, reviews:31, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=900&auto=format&fit=crop",
           ingredients:"Blåskjell, hvitløk, persilleost, hvitvin, smør. Allergener: Bløtdyr, Melk." },
       ],
       Hovedretter: [
-        { id:104, name:"Laks med smørdampet spinat",   price:"325,-", rating:4.8, reviews:34, uploaded:false,
+        { id:104, name:"Laks med smørdampet spinat", price:"325,-", rating:4.8, reviews:34, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&auto=format&fit=crop",
           ingredients:"Atlanterhavslaks, smørdampet spinat, mandelpotetstappe, ferske erter, sitronsmør. Allergener: Fisk, Melk." },
-        { id:105, name:"Entrecôte med trøffelsaus",    price:"445,-", rating:4.9, reviews:28, uploaded:false,
+        { id:105, name:"Entrecôte med trøffelsaus",  price:"445,-", rating:4.9, reviews:28, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=900&auto=format&fit=crop",
           ingredients:"Norsk storfe, svart trøffel, demi-glace, asparges, grillet paprika. Allergener: Melk." },
-        { id:106, name:"Vegetarisk risotto royale",    price:"285,-", rating:4.7, reviews:19, uploaded:false,
+        { id:106, name:"Vegetarisk risotto royale",  price:"285,-", rating:4.7, reviews:19, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=900&auto=format&fit=crop",
           ingredients:"Arborioris, parmesan, sopp, sjalottløk, hvitvin, trøffelolje. Allergener: Melk." },
       ],
       Snacks: [
-        { id:107, name:"Trøffel-fries",                price:"125,-", rating:4.6, reviews:41, uploaded:false,
+        { id:107, name:"Trøffel-fries",              price:"125,-", rating:4.6, reviews:41, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=900&auto=format&fit=crop",
           ingredients:"Rustikke poteter, trøffelolje, parmesan, rosmarin, havsalt. Allergener: Melk." },
-        { id:108, name:"Brioche med kaviar",           price:"195,-", rating:4.8, reviews:19, uploaded:false,
+        { id:108, name:"Brioche med kaviar",         price:"195,-", rating:4.8, reviews:19, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1551024506-0bccd828d307?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=900&auto=format&fit=crop",
           ingredients:"Hjemmelaget brioche, norsk kaviar, crème fraîche, gressløk. Allergener: Egg, Melk, Hvete." },
       ],
       Dessert: [
-        { id:109, name:"Sjokoladefondue royale",       price:"145,-", rating:4.9, reviews:37, uploaded:false,
+        { id:109, name:"Sjokoladefondue royale",     price:"145,-", rating:4.9, reviews:37, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=900&auto=format&fit=crop",
           ingredients:"Mørk sjokolade, fløte, sesongens bær, sprø tuiles, gullflak. Allergener: Melk, Egg, Hvete, Nøtter." },
-        { id:110, name:"Crème brûlée med vanilje",     price:"125,-", rating:4.7, reviews:29, uploaded:false,
+        { id:110, name:"Crème brûlée med vanilje",   price:"125,-", rating:4.7, reviews:29, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=900&auto=format&fit=crop",
           ingredients:"Bourbon-vanilje, eggeplomme, fløte, sukker, bærgarnityr. Allergener: Egg, Melk." },
@@ -144,40 +110,37 @@ const RESTAURANTS = [
     }
   },
   {
-    id: 2,
-    name: "Glass Restaurant & Bar",
-    distance: "400m unna",
-    cuisine: "Moderne Europeisk",
+    id: 2, name: "Glass Restaurant & Bar", distance: "400m unna", cuisine: "Moderne Europeisk",
     bg: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&auto=format&fit=crop&q=80",
     menu: {
       Småretter: [
-        { id:201, name:"Østers med ponzu",             price:"215,-", rating:4.8, reviews:11, uploaded:false,
+        { id:201, name:"Østers med ponzu",           price:"215,-", rating:4.8, reviews:11, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1606731219412-3b066d3bbde0?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1606731219412-3b066d3bbde0?w=900&auto=format&fit=crop",
           ingredients:"Ferske østers, ponzusaus, yuzu, mikrogrønt, riseddik. Allergener: Bløtdyr, Soya." },
-        { id:202, name:"Ceviche av kveite",            price:"185,-", rating:4.7, reviews:14, uploaded:false,
+        { id:202, name:"Ceviche av kveite",          price:"185,-", rating:4.7, reviews:14, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=900&auto=format&fit=crop",
           ingredients:"Nordnorsk kveite, limesaft, chili, rødløk, koriander, maiskorn. Allergener: Fisk." },
       ],
       Hovedretter: [
-        { id:203, name:"Helstekt kveite",              price:"385,-", rating:4.9, reviews:16, uploaded:false,
+        { id:203, name:"Helstekt kveite",            price:"385,-", rating:4.9, reviews:16, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=900&auto=format&fit=crop",
           ingredients:"Nordnorsk kveite, sitronsmør, timian, dampede grønnsaker. Allergener: Fisk, Melk." },
-        { id:204, name:"Andecassoulet med linser",     price:"345,-", rating:4.8, reviews:9, uploaded:false,
+        { id:204, name:"Andecassoulet med linser",   price:"345,-", rating:4.8, reviews:9, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=900&auto=format&fit=crop",
           ingredients:"Confit de canard, grønne linser, hvitløk, rosmarin, timian. Allergener: Selleri." },
       ],
       Snacks: [
-        { id:205, name:"Wagyu-tataki",                 price:"245,-", rating:4.9, reviews:8, uploaded:false,
+        { id:205, name:"Wagyu-tataki",               price:"245,-", rating:4.9, reviews:8, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=900&auto=format&fit=crop",
           ingredients:"A5 Wagyu, sesamolje, ingefær, soya, wasabi-emulsjon. Allergener: Soya, Sesam." },
       ],
       Dessert: [
-        { id:206, name:"Yuzu-sorbet med mango",        price:"115,-", rating:4.7, reviews:23, uploaded:false,
+        { id:206, name:"Yuzu-sorbet med mango",      price:"115,-", rating:4.7, reviews:23, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1488900128323-21503983a07e?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=900&auto=format&fit=crop",
           ingredients:"Yuzu, mango, lime, ingefærsirup, frisk mynte. Allergener: Ingen." },
@@ -185,44 +148,37 @@ const RESTAURANTS = [
     }
   },
   {
-    id: 3,
-    name: "Derby Gastrobar",
-    distance: "600m unna",
-    cuisine: "Gastropub & Brasserie",
+    id: 3, name: "Derby Gastrobar", distance: "600m unna", cuisine: "Gastropub & Brasserie",
     bg: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900&auto=format&fit=crop&q=80",
     menu: {
       Småretter: [
-        { id:301, name:"Bao buns med pulled pork",     price:"155,-", rating:4.7, reviews:45, uploaded:false,
+        { id:301, name:"Bao buns med pulled pork",   price:"155,-", rating:4.7, reviews:45, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=900&auto=format&fit=crop",
           ingredients:"Dampet bao, pulled pork, syltet agurk, hoisinsaus, koriander. Allergener: Hvete, Soya, Sesam." },
-        { id:302, name:"Burrata med tomat",            price:"145,-", rating:4.8, reviews:22, uploaded:false,
+        { id:302, name:"Burrata med tomat",          price:"145,-", rating:4.8, reviews:22, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1544816155-12df9643f363?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=900&auto=format&fit=crop",
           ingredients:"Fersk burrata, arvetomat, basilikum, extra virgin olivenolje, flaksalt. Allergener: Melk." },
       ],
       Hovedretter: [
-        { id:303, name:"Derby Signature Burger",       price:"265,-", rating:4.8, reviews:67, uploaded:false,
+        { id:303, name:"Derby Signature Burger",     price:"265,-", rating:4.8, reviews:67, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop",
           ingredients:"Dobbel smashburger, cheddar, karamellisert løk, bacon, secret sauce, brioche. Allergener: Hvete, Melk, Egg, Soya." },
-        { id:304, name:"Grillet lammekoteletter",      price:"345,-", rating:4.9, reviews:18, uploaded:false,
+        { id:304, name:"Grillet lammekoteletter",    price:"345,-", rating:4.9, reviews:18, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1529042410759-befb1204b468?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=900&auto=format&fit=crop",
           ingredients:"Lammekoteletter, chimichurri, grillet mais, fetaost, rødløk. Allergener: Melk." },
       ],
       Snacks: [
-        { id:305, name:"Loaded nachos deluxe",         price:"145,-", rating:4.6, reviews:52, uploaded:false,
+        { id:305, name:"Loaded nachos deluxe",       price:"145,-", rating:4.6, reviews:52, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=900&auto=format&fit=crop",
           ingredients:"Tortillachips, guacamole, salsa roja, jalapeño, sour cream, smeltet ost. Allergener: Melk, Hvete." },
-        { id:306, name:"Kalamari med aioli",           price:"135,-", rating:4.7, reviews:33, uploaded:false,
-          thumb:"https://images.unsplash.com/photo-1585032226651-759b368d7246?w=200&auto=format&fit=crop",
-          hero: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=900&auto=format&fit=crop",
-          ingredients:"Blekksprut, panko, hvitløksaioli, sitron, paprika. Allergener: Hvete, Egg, Bløtdyr." },
       ],
       Dessert: [
-        { id:307, name:"Sticky toffee pudding",        price:"135,-", rating:4.9, reviews:38, uploaded:false,
+        { id:307, name:"Sticky toffee pudding",      price:"135,-", rating:4.9, reviews:38, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=200&auto=format&fit=crop",
           hero: "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=900&auto=format&fit=crop",
           ingredients:"Daddelkake, toffee-saus, vaniljeis, sprøstekt valnøtt. Allergener: Egg, Melk, Hvete, Nøtter." },
@@ -233,265 +189,722 @@ const RESTAURANTS = [
 
 const CATEGORIES = ["Småretter","Hovedretter","Snacks","Dessert"];
 
-/* ─────────────────────────── ICONS ─────────────────────────── */
+/* ═══════════════════════════ UTILITIES ═══════════════════════════ */
+
+const resizeImage = (dataUrl, maxPx = 1600) => new Promise(resolve => {
+  const img = new Image();
+  img.onload = () => {
+    let { width: w, height: h } = img;
+    if (w > maxPx || h > maxPx) {
+      if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+      else        { w = Math.round(w * maxPx / h); h = maxPx; }
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    resolve(c.toDataURL('image/jpeg', 0.82));
+  };
+  img.src = dataUrl;
+});
+
+const analyzeImage = async (base64, mime, apiKey) => {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 150,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
+          { type: 'text', text: `Du er en streng matfoto-kvalitetssjekker for en eksklusiv restaurant-app. Analyser bildet nøye.
+
+GODKJENNINGSKRAV – ALLE må oppfylles:
+1. Mat er tydelig hovedmotivet og godt synlig i bildet
+2. Bildet er skarpt og ikke uskarp/blurry
+3. Ingen fingre, hender eller fremmede objekter dekker maten
+4. God nok belysning til å se maten tydelig
+5. Bildet ser appetittvekkende og presentabelt ut
+
+Svar KUN med gyldig JSON – ingenting annet:
+{"godkjent": true/false, "grunn": "maks 10 ord på norsk"}` }
+        ]
+      }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) throw new Error('Ugyldig API-nøkkel');
+    if (res.status === 429) throw new Error('For mange forespørsler – vent litt og prøv igjen');
+    throw new Error(err.error?.message || `Serverfeil (${res.status})`);
+  }
+
+  const data = await res.json();
+  const text = (data.content?.[0]?.text || '').trim();
+  const match = text.match(/\{[\s\S]*?\}/);
+  if (!match) throw new Error('Uventet svar fra AI – prøv igjen');
+  return JSON.parse(match[0]);
+};
+
+/* ═══════════════════════════ ICONS ═══════════════════════════ */
 
 const IconBack = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="15 18 9 12 15 6"/>
   </svg>
 );
-
 const IconSearch = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="1.8" strokeLinecap="round">
     <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
   </svg>
 );
-
-const IconCalendar = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2" strokeLinecap="round">
-    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+const IconSettings = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 );
-
 const IconClose = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round">
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
-
+const IconCalendar = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2.2" strokeLinecap="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
 const IconCamera = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2" strokeLinecap="round">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2.2" strokeLinecap="round">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
     <circle cx="12" cy="13" r="4"/>
   </svg>
 );
+const IconRetry = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2.2" strokeLinecap="round">
+    <polyline points="1 4 1 10 7 10"/>
+    <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+  </svg>
+);
 
-/* ─────────────────────────── STARS ─────────────────────────── */
+/* ═══════════════════════════ SMALL COMPONENTS ═══════════════════════════ */
 
 const Stars = ({ rating = 5, small = false }) => {
   const full  = Math.floor(rating);
-  const half  = rating % 1 >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  const size  = small ? "text-xs" : "text-base";
+  const empty = 5 - full;
   return (
-    <span className={`${size} tracking-tight`}>
+    <span style={{ fontSize: small ? 11 : 16 }}>
       {"★".repeat(full)}
-      {half ? "½" : ""}
-      {"☆".repeat(empty)}
+      <span style={{ opacity: 0.25 }}>{"★".repeat(empty)}</span>
     </span>
   );
 };
 
-/* ─────────────────────────── SPINNER ─────────────────────────── */
-
-const GoldSpinner = () => (
-  <div className="flex flex-col items-center gap-3">
-    <div
-      className="anim-spin"
-      style={{
-        width:44, height:44,
-        border:"3px solid #2a2a2a",
-        borderTop:"3px solid #D4AF37",
-        borderRadius:"50%"
-      }}
-    />
-    <p style={{ color:"#D4AF37", fontSize:13, letterSpacing:"0.12em" }}>LASTER OPP…</p>
+const GoldSpinner = ({ size = 44, label = "LASTER OPP…" }) => (
+  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
+    <div className="anim-spin" style={{
+      width:size, height:size,
+      border:"3px solid #1e1e1e",
+      borderTop:`3px solid #D4AF37`,
+      borderRadius:"50%"
+    }} />
+    {label && <p style={{ color:"#D4AF37", fontSize:12, letterSpacing:"0.14em", margin:0 }}>{label}</p>}
   </div>
 );
 
-/* ─────────────────────────── SCREEN 1: DISCOVER ─────────────────────────── */
+/* ═══════════════════════════ API KEY MODAL ═══════════════════════════ */
 
-const DiscoverScreen = ({ restaurants, onSelect }) => {
+const ApiKeyModal = ({ onSave, onClose }) => {
+  const [key,   setKey]   = useState('');
+  const [show,  setShow]  = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = () => {
+    const k = key.trim();
+    if (!k) { setError('Skriv inn din API-nøkkel'); return; }
+    if (!k.startsWith('sk-ant-')) {
+      setError('Nøkkelen skal starte med "sk-ant-api03-…"');
+      return;
+    }
+    onSave(k);
+  };
+
   return (
-    <div style={{ background:"#0D0D0D", minHeight:"100vh" }}>
-
-      {/* ── Header ── */}
-      <div style={{
-        position:"sticky", top:0, zIndex:50,
-        background:"rgba(13,13,13,0.92)", backdropFilter:"blur(12px)",
-        borderBottom:"1px solid rgba(212,175,55,0.15)",
-        padding:"16px 20px 14px",
-        display:"flex", alignItems:"center", justifyContent:"space-between"
+    <div
+      className="anim-fade-in"
+      style={{ position:"fixed", inset:0, zIndex:500, background:"rgba(0,0,0,0.88)", display:"flex", alignItems:"flex-end" }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div className="anim-slide-up" style={{
+        width:"100%", background:"#141414",
+        borderRadius:"22px 22px 0 0",
+        border:"1px solid rgba(212,175,55,0.3)", borderBottom:"none",
+        overflow:"hidden"
       }}>
-        <div>
-          <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:700, letterSpacing:"0.06em", margin:0 }}>
-            DISHY
-          </h1>
-          <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.6 }} />
-        </div>
-        <button
-          style={{ background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}
-        >
-          <IconSearch />
-        </button>
-      </div>
+        {/* Gold top stripe */}
+        <div style={{ height:3, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
 
-      {/* ── Hero tagline ── */}
-      <div style={{ padding:"28px 20px 16px" }}>
-        <p style={{ color:"#888", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>
-          GPS — Molde sentrum
-        </p>
-        <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, lineHeight:1.25, margin:0 }}>
-          Eksklusive menyer<br />
-          <span style={{ color:"#D4AF37" }}>i nærheten av deg</span>
-        </h2>
-      </div>
+        <div style={{ padding:"28px 24px 40px" }}>
+          {/* Drag handle */}
+          <div style={{ width:40, height:4, background:"#333", borderRadius:2, margin:"0 auto 24px" }} />
 
-      {/* ── Thin gold divider ── */}
-      <div style={{ margin:"0 20px 24px", height:1, background:"linear-gradient(90deg, #D4AF37 0%, transparent 100%)", opacity:0.35 }} />
+          {/* Icon */}
+          <div style={{ textAlign:"center", marginBottom:16 }}>
+            <div style={{
+              display:"inline-flex", alignItems:"center", justifyContent:"center",
+              width:60, height:60, borderRadius:"50%",
+              background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)"
+            }}>
+              <span style={{ fontSize:28 }}>🤖</span>
+            </div>
+          </div>
 
-      {/* ── Restaurant cards ── */}
-      <div style={{ padding:"0 16px 40px", display:"flex", flexDirection:"column", gap:16 }}>
-        {restaurants.map((r, idx) => (
+          <h3 style={{ color:"#fff", fontSize:20, fontWeight:700, textAlign:"center", margin:"0 0 8px", letterSpacing:"0.02em" }}>
+            AI-bildegodkjenning
+          </h3>
+          <p style={{ color:"#666", fontSize:13, textAlign:"center", lineHeight:1.6, margin:"0 0 24px" }}>
+            Dishy bruker <span style={{ color:"#D4AF37" }}>Claude AI</span> for å sikre at kun<br />
+            skarpe, appetittvekkende matbilder godkjennes.
+          </p>
+
+          {/* Input */}
+          <p style={{ color:"#555", fontSize:11, letterSpacing:"0.13em", textTransform:"uppercase", margin:"0 0 8px", fontWeight:600 }}>
+            Anthropic API-nøkkel
+          </p>
+          <div style={{ position:"relative", marginBottom:8 }}>
+            <input
+              type={show ? "text" : "password"}
+              value={key}
+              onChange={e => { setKey(e.target.value); setError(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleSave()}
+              placeholder="sk-ant-api03-..."
+              autoComplete="off"
+              style={{
+                width:"100%", padding:"13px 46px 13px 14px",
+                background:"#0D0D0D",
+                border:`1px solid ${error ? "rgba(255,80,80,0.6)" : "rgba(212,175,55,0.25)"}`,
+                borderRadius:12, color:"#fff", fontSize:14,
+                fontFamily:"'Courier New', monospace",
+                transition:"border-color 0.2s"
+              }}
+            />
+            <button
+              onClick={() => setShow(s => !s)}
+              style={{
+                position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                background:"none", border:"none", cursor:"pointer",
+                fontSize:16, lineHeight:1
+              }}
+            >
+              {show ? "🙈" : "👁️"}
+            </button>
+          </div>
+          {error && (
+            <p style={{ color:"#ff6b6b", fontSize:12, margin:"0 0 8px" }}>{error}</p>
+          )}
+          <p style={{ color:"#3a3a3a", fontSize:11, margin:"0 0 24px", lineHeight:1.5 }}>
+            Lagres kun lokalt i nettleseren din. Hent gratis nøkkel fra Anthropic Console.
+          </p>
+
+          {/* CTA */}
           <button
-            key={r.id}
-            onClick={() => onSelect(r)}
-            className="card-hover anim-fade-in"
+            onClick={handleSave}
             style={{
-              all:"unset", cursor:"pointer", display:"block",
-              borderRadius:16,
-              overflow:"hidden",
-              border:"1px solid rgba(212,175,55,0.2)",
-              position:"relative",
-              animationDelay:`${idx * 0.08}s`,
+              width:"100%", padding:"16px",
+              background: key ? "#D4AF37" : "#222",
+              border:"none", borderRadius:13,
+              cursor: key ? "pointer" : "default",
+              fontSize:14, fontWeight:800,
+              color: key ? "#0D0D0D" : "#444",
+              letterSpacing:"0.04em",
+              transition:"background 0.2s, color 0.2s",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8
             }}
           >
-            {/* BG Image */}
-            <div style={{ position:"relative", height:180, overflow:"hidden" }}>
-              <img
-                src={r.bg}
-                alt={r.name}
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(0.55)" }}
-                loading="lazy"
-              />
-              {/* Dark gradient overlay */}
-              <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #0D0D0D 0%, transparent 55%)" }} />
-
-              {/* ✨ Tag */}
-              <div style={{
-                position:"absolute", top:12, right:12,
-                background:"rgba(212,175,55,0.18)", border:"1px solid rgba(212,175,55,0.5)",
-                borderRadius:20, padding:"4px 10px",
-                backdropFilter:"blur(6px)"
-              }}>
-                <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600, letterSpacing:"0.05em" }}>
-                  ✨ Bildemeny tilgjengelig
-                </span>
-              </div>
-
-              {/* Text on image */}
-              <div style={{ position:"absolute", bottom:14, left:16, right:16 }}>
-                <h3 style={{ color:"#D4AF37", fontSize:18, fontWeight:700, margin:"0 0 3px", letterSpacing:"0.03em" }}>
-                  {r.name}
-                </h3>
-                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <span style={{ color:"#ccc", fontSize:12 }}>📍 {r.distance}</span>
-                  <span style={{ color:"#666", fontSize:12 }}>·</span>
-                  <span style={{ color:"#888", fontSize:12 }}>{r.cuisine}</span>
-                </div>
-              </div>
-            </div>
+            <IconCamera />
+            Lagre og åpne kamera
           </button>
-        ))}
+
+          <button
+            onClick={onClose}
+            style={{
+              width:"100%", padding:"12px", marginTop:10,
+              background:"transparent", border:"none", cursor:"pointer",
+              fontSize:13, color:"#444"
+            }}
+          >
+            Avbryt
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-/* ─────────────────────────── SCREEN 2: RESTAURANT ─────────────────────────── */
+/* ═══════════════════════════ IMAGE UPLOAD MODAL ═══════════════════════════ */
+
+const STAGES = [
+  { emoji:"📷", label:"Leser og prosesserer bilde…" },
+  { emoji:"🔬", label:"Sjekker skarphet og fokus…" },
+  { emoji:"🍽️", label:"Analyserer matinnhold…" },
+  { emoji:"✨", label:"Vurderer presentasjon og kvalitet…" },
+  { emoji:"🤖", label:"Fullfører AI-validering…" },
+];
+
+const ImageUploadModal = ({ dish, restaurantName, apiKey, imageData, onRetake, onApproved, onClose, onBadKey }) => {
+  const [phase,    setPhase]    = useState('preview'); // preview | analyzing | rejected
+  const [stageIdx, setStageIdx] = useState(0);
+  const [reason,   setReason]   = useState('');
+  const [prevKey,  setPrevKey]  = useState(stageIdx); // for animation key
+
+  const analyze = async () => {
+    setPhase('analyzing');
+    setStageIdx(0);
+
+    let idx = 0;
+    const timer = setInterval(() => {
+      idx = Math.min(idx + 1, STAGES.length - 1);
+      setStageIdx(idx);
+      setPrevKey(idx);
+    }, 750);
+
+    try {
+      const result = await analyzeImage(imageData.base64, imageData.mime, apiKey);
+      clearInterval(timer);
+      setStageIdx(STAGES.length - 1);
+
+      if (result.godkjent) {
+        setTimeout(onApproved, 900);
+      } else {
+        setReason(result.grunn || 'Bildet møter ikke kvalitetskravene.');
+        setTimeout(() => setPhase('rejected'), 400);
+      }
+    } catch (err) {
+      clearInterval(timer);
+      if (err.message === 'Ugyldig API-nøkkel') {
+        onBadKey();
+      } else {
+        setReason(err.message);
+        setPhase('rejected');
+      }
+    }
+  };
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:400, background:"#0D0D0D", display:"flex", flexDirection:"column" }}>
+
+      {/* ── PREVIEW PHASE ── */}
+      {phase === 'preview' && (
+        <div className="anim-fade-in" style={{ display:"flex", flexDirection:"column", height:"100%" }}>
+          {/* Top bar */}
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            padding:"16px 20px",
+            borderBottom:"1px solid rgba(212,175,55,0.1)"
+          }}>
+            <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+              <IconClose />
+              <span style={{ color:"#666", fontSize:13 }}>Avbryt</span>
+            </button>
+            <span style={{ color:"#D4AF37", fontSize:13, fontWeight:700, letterSpacing:"0.08em" }}>
+              FORHÅNDSVISNING
+            </span>
+            <button
+              onClick={onRetake}
+              style={{
+                background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)",
+                borderRadius:20, padding:"6px 13px", cursor:"pointer",
+                color:"#D4AF37", fontSize:12, fontWeight:600
+              }}
+            >
+              Ta nytt
+            </button>
+          </div>
+
+          {/* Image preview */}
+          <div style={{ flex:1, position:"relative", overflow:"hidden" }}>
+            <img
+              src={imageData.preview}
+              alt="Forhåndsvisning"
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}
+            />
+            {/* Subtle gold frame */}
+            <div style={{
+              position:"absolute", inset:12,
+              border:"1px solid rgba(212,175,55,0.25)",
+              borderRadius:8, pointerEvents:"none"
+            }} />
+            {/* Corner accents */}
+            {[["0","0"],["0","auto"],["auto","0"],["auto","auto"]].map(([t,b],i) => (
+              <div key={i} style={{
+                position:"absolute",
+                top: b === "auto" ? "auto" : 12,
+                bottom: b === "auto" ? 12 : "auto",
+                left: i % 2 === 0 ? 12 : "auto",
+                right: i % 2 === 0 ? "auto" : 12,
+                width:24, height:24,
+                borderTop: (i < 2) ? "2px solid #D4AF37" : "none",
+                borderBottom: (i >= 2) ? "2px solid #D4AF37" : "none",
+                borderLeft: (i % 2 === 0) ? "2px solid #D4AF37" : "none",
+                borderRight: (i % 2 !== 0) ? "2px solid #D4AF37" : "none",
+                pointerEvents:"none"
+              }} />
+            ))}
+          </div>
+
+          {/* Bottom info + CTA */}
+          <div style={{ padding:"20px 20px 40px", background:"#0D0D0D", borderTop:"1px solid rgba(212,175,55,0.1)" }}>
+            <p style={{ color:"#888", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 3px" }}>
+              {restaurantName}
+            </p>
+            <p style={{ color:"#fff", fontSize:16, fontWeight:700, margin:"0 0 18px" }}>
+              {dish?.name}
+            </p>
+
+            <button
+              onClick={analyze}
+              className="anim-pulse-gold"
+              style={{
+                width:"100%", padding:"16px",
+                background:"#D4AF37", border:"none",
+                borderRadius:14, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:9,
+                fontSize:15, fontWeight:800, color:"#0D0D0D",
+                letterSpacing:"0.04em"
+              }}
+            >
+              <span style={{ fontSize:18 }}>🔍</span>
+              Analyser med AI
+            </button>
+            <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"10px 0 0" }}>
+              Claude AI sjekker bildekvalitet automatisk
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── ANALYZING PHASE ── */}
+      {phase === 'analyzing' && (
+        <div className="anim-fade-in" style={{ flex:1, display:"flex", flexDirection:"column", position:"relative" }}>
+          {/* Dimmed image backdrop */}
+          <div style={{ position:"absolute", inset:0 }}>
+            <img
+              src={imageData.preview}
+              alt=""
+              style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.12) blur(4px)" }}
+            />
+          </div>
+
+          {/* Scan line animation */}
+          <div className="scan-line" style={{
+            position:"absolute", left:0, right:0, height:2,
+            background:"linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)",
+            pointerEvents:"none", zIndex:2
+          }} />
+
+          {/* Content */}
+          <div style={{ position:"relative", zIndex:3, flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 32px" }}>
+            {/* Spinner ring */}
+            <div style={{ position:"relative", marginBottom:32 }}>
+              <div className="anim-spin" style={{
+                width:72, height:72,
+                border:"3px solid rgba(212,175,55,0.15)",
+                borderTop:"3px solid #D4AF37",
+                borderRadius:"50%"
+              }} />
+              <div style={{
+                position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:26
+              }}>
+                {STAGES[stageIdx].emoji}
+              </div>
+            </div>
+
+            {/* Stage label */}
+            <p
+              key={stageIdx}
+              className="anim-stage-fade"
+              style={{ color:"#D4AF37", fontSize:15, fontWeight:600, textAlign:"center", margin:"0 0 8px", letterSpacing:"0.03em" }}
+            >
+              {STAGES[stageIdx].label}
+            </p>
+            <p style={{ color:"#444", fontSize:12, textAlign:"center", margin:"0 0 40px" }}>
+              AI-analyse pågår…
+            </p>
+
+            {/* Stage dots */}
+            <div style={{ display:"flex", gap:8 }}>
+              {STAGES.map((_, i) => (
+                <div key={i} style={{
+                  width: i === stageIdx ? 20 : 6,
+                  height:6, borderRadius:3,
+                  background: i <= stageIdx ? "#D4AF37" : "#2a2a2a",
+                  transition:"all 0.4s ease"
+                }} />
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom label */}
+          <div style={{ position:"relative", zIndex:3, padding:"0 24px 48px", textAlign:"center" }}>
+            <p style={{ color:"#2a2a2a", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+              Vennligst vent — dette tar 3–5 sekunder
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── REJECTED PHASE ── */}
+      {phase === 'rejected' && (
+        <div className="anim-fade-in" style={{ flex:1, display:"flex", flexDirection:"column" }}>
+          {/* Dimmed image backdrop */}
+          <div style={{ position:"relative", height:"40%", overflow:"hidden" }}>
+            <img
+              src={imageData.preview}
+              alt=""
+              style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.2) saturate(0)" }}
+            />
+            <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #0D0D0D 10%, transparent 70%)" }} />
+          </div>
+
+          {/* Content */}
+          <div style={{ flex:1, padding:"28px 24px 40px", display:"flex", flexDirection:"column" }}>
+            {/* X icon */}
+            <div className="anim-scale-pop" style={{ textAlign:"center", marginBottom:16 }}>
+              <div style={{
+                display:"inline-flex", alignItems:"center", justifyContent:"center",
+                width:64, height:64, borderRadius:"50%",
+                background:"rgba(220,50,50,0.1)", border:"1px solid rgba(220,50,50,0.3)"
+              }}>
+                <span style={{ fontSize:28 }}>✕</span>
+              </div>
+            </div>
+
+            <h3 style={{ color:"#fff", fontSize:22, fontWeight:700, textAlign:"center", margin:"0 0 8px" }}>
+              Ikke godkjent
+            </h3>
+            <p style={{ color:"#D4AF37", fontSize:14, textAlign:"center", lineHeight:1.55, margin:"0 0 8px", fontWeight:600 }}>
+              {reason}
+            </p>
+            <p style={{ color:"#555", fontSize:13, textAlign:"center", lineHeight:1.55, margin:"0 0 32px" }}>
+              Ta et nytt bilde: hold kameraet stabilt,<br />
+              sørg for god belysning og at maten er fri for hindringer.
+            </p>
+
+            {/* Tips */}
+            <div style={{
+              background:"rgba(212,175,55,0.05)", border:"1px solid rgba(212,175,55,0.12)",
+              borderRadius:12, padding:"14px 16px", marginBottom:28
+            }}>
+              <p style={{ color:"#888", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 10px", fontWeight:600 }}>
+                Tips for godkjent bilde
+              </p>
+              {[
+                ["📷","Hold kameraet stødig i 1–2 sekunder"],
+                ["💡","Sørg for god belysning fra siden"],
+                ["🍽️","Mat skal fylle minst halvparten av bildet"],
+                ["🤚","Unngå fingre og fremmede objekter"],
+              ].map(([e, t]) => (
+                <p key={t} style={{ color:"#666", fontSize:13, margin:"0 0 5px", display:"flex", gap:8 }}>
+                  <span>{e}</span><span>{t}</span>
+                </p>
+              ))}
+            </div>
+
+            <div style={{ marginTop:"auto", display:"flex", flexDirection:"column", gap:10 }}>
+              <button
+                onClick={onRetake}
+                style={{
+                  width:"100%", padding:"16px",
+                  background:"#D4AF37", border:"none",
+                  borderRadius:13, cursor:"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  fontSize:14, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.04em"
+                }}
+              >
+                <IconRetry />
+                Ta nytt bilde
+              </button>
+              <button
+                onClick={onClose}
+                style={{
+                  width:"100%", padding:"13px",
+                  background:"transparent", border:"1px solid #2a2a2a",
+                  borderRadius:13, cursor:"pointer",
+                  fontSize:13, color:"#555"
+                }}
+              >
+                Avbryt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ═══════════════════════════ SCREEN 1: DISCOVER ═══════════════════════════ */
+
+const DiscoverScreen = ({ restaurants, onSelect, onSettings }) => (
+  <div style={{ background:"#0D0D0D", minHeight:"100vh" }}>
+    {/* Header */}
+    <div style={{
+      position:"sticky", top:0, zIndex:50,
+      background:"rgba(13,13,13,0.93)", backdropFilter:"blur(12px)",
+      borderBottom:"1px solid rgba(212,175,55,0.12)",
+      padding:"16px 20px 14px",
+      display:"flex", alignItems:"center", justifyContent:"space-between"
+    }}>
+      <div>
+        <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:800, letterSpacing:"0.07em", margin:0 }}>
+          DISHY
+        </h1>
+        <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.5 }} />
+      </div>
+      <div style={{ display:"flex", gap:8 }}>
+        <button
+          onClick={onSettings}
+          style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #222", borderRadius:10, padding:"7px 8px", display:"flex", alignItems:"center" }}
+        >
+          <IconSettings />
+        </button>
+        <button style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}>
+          <IconSearch />
+        </button>
+      </div>
+    </div>
+
+    {/* Tagline */}
+    <div style={{ padding:"28px 20px 16px" }}>
+      <p style={{ color:"#555", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>
+        📍 GPS — Molde sentrum
+      </p>
+      <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, lineHeight:1.25, margin:0 }}>
+        Eksklusive menyer<br />
+        <span style={{ color:"#D4AF37" }}>i nærheten av deg</span>
+      </h2>
+    </div>
+
+    <div style={{ margin:"0 20px 24px", height:1, background:"linear-gradient(90deg, #D4AF37 0%, transparent 100%)", opacity:0.25 }} />
+
+    {/* Cards */}
+    <div style={{ padding:"0 16px 48px", display:"flex", flexDirection:"column", gap:16 }}>
+      {restaurants.map((r, idx) => (
+        <button
+          key={r.id}
+          onClick={() => onSelect(r)}
+          className="card-hover anim-fade-in"
+          style={{
+            all:"unset", cursor:"pointer", display:"block",
+            borderRadius:16, overflow:"hidden",
+            border:"1px solid rgba(212,175,55,0.18)",
+            animationDelay:`${idx * 0.08}s`
+          }}
+        >
+          <div style={{ position:"relative", height:186, overflow:"hidden" }}>
+            <img
+              src={r.bg} alt={r.name}
+              style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.52)" }}
+              loading="lazy"
+            />
+            <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #0D0D0D 0%, transparent 55%)" }} />
+
+            <div style={{
+              position:"absolute", top:12, right:12,
+              background:"rgba(212,175,55,0.16)", border:"1px solid rgba(212,175,55,0.45)",
+              borderRadius:20, padding:"4px 10px", backdropFilter:"blur(6px)"
+            }}>
+              <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600 }}>✨ Bildemeny tilgjengelig</span>
+            </div>
+
+            <div style={{ position:"absolute", bottom:14, left:16, right:16 }}>
+              <h3 style={{ color:"#D4AF37", fontSize:18, fontWeight:700, margin:"0 0 3px", letterSpacing:"0.02em" }}>
+                {r.name}
+              </h3>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ color:"#ccc", fontSize:12 }}>📍 {r.distance}</span>
+                <span style={{ color:"#444", fontSize:12 }}>·</span>
+                <span style={{ color:"#777", fontSize:12 }}>{r.cuisine}</span>
+              </div>
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+/* ═══════════════════════════ SCREEN 2: RESTAURANT ═══════════════════════════ */
 
 const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
   const [category, setCategory] = useState(CATEGORIES[0]);
-  const catRef = useRef(null);
-
   const items = restaurant.menu[category] || [];
 
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh" }} className="anim-fade-in">
-
-      {/* ── Hero image ── */}
+      {/* Hero */}
       <div style={{ position:"relative", height:220, overflow:"hidden" }}>
-        <img
-          src={restaurant.bg}
-          alt={restaurant.name}
-          style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.45)" }}
-        />
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #0D0D0D 20%, transparent 80%)" }} />
+        <img src={restaurant.bg} alt={restaurant.name}
+          style={{ width:"100%", height:"100%", objectFit:"cover", filter:"brightness(0.42)" }} />
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #0D0D0D 18%, transparent 80%)" }} />
 
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          style={{
-            position:"absolute", top:18, left:16,
-            background:"rgba(13,13,13,0.7)", border:"1px solid rgba(212,175,55,0.35)",
-            borderRadius:10, padding:"7px 13px 7px 10px",
-            display:"flex", alignItems:"center", gap:5,
-            backdropFilter:"blur(8px)"
-          }}
-        >
+        <button onClick={onBack} style={{
+          position:"absolute", top:18, left:16,
+          background:"rgba(13,13,13,0.7)", border:"1px solid rgba(212,175,55,0.3)",
+          borderRadius:10, padding:"7px 13px 7px 10px",
+          display:"flex", alignItems:"center", gap:5, backdropFilter:"blur(8px)", cursor:"pointer"
+        }}>
           <IconBack />
           <span style={{ color:"#D4AF37", fontSize:13, fontWeight:600 }}>Tilbake</span>
         </button>
 
-        {/* Book table button */}
-        <button
-          style={{
-            position:"absolute", top:18, right:16,
-            background:"#D4AF37", borderRadius:10,
-            padding:"8px 14px",
-            display:"flex", alignItems:"center", gap:6,
-            border:"none", cursor:"pointer"
-          }}
-        >
+        <button style={{
+          position:"absolute", top:18, right:16,
+          background:"#D4AF37", borderRadius:10, padding:"8px 14px",
+          display:"flex", alignItems:"center", gap:6, border:"none", cursor:"pointer"
+        }}>
           <IconCalendar />
-          <span style={{ color:"#0D0D0D", fontSize:12, fontWeight:700, letterSpacing:"0.05em" }}>
-            Bordbestilling
-          </span>
+          <span style={{ color:"#0D0D0D", fontSize:12, fontWeight:700, letterSpacing:"0.05em" }}>Bordbestilling</span>
         </button>
 
-        {/* Restaurant name */}
         <div style={{ position:"absolute", bottom:16, left:20, right:20 }}>
-          <h2 style={{ color:"#fff", fontSize:24, fontWeight:800, margin:"0 0 2px", letterSpacing:"0.02em" }}>
-            {restaurant.name}
-          </h2>
+          <h2 style={{ color:"#fff", fontSize:24, fontWeight:800, margin:"0 0 2px" }}>{restaurant.name}</h2>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ color:"#D4AF37", fontSize:12 }}>📍 {restaurant.distance}</span>
-            <span style={{ color:"#666", fontSize:12 }}>·</span>
-            <span style={{ color:"#888", fontSize:12 }}>{restaurant.cuisine}</span>
+            <span style={{ color:"#444", fontSize:12 }}>·</span>
+            <span style={{ color:"#777", fontSize:12 }}>{restaurant.cuisine}</span>
           </div>
         </div>
       </div>
 
-      {/* ── Category tabs ── */}
+      {/* Category tabs */}
       <div style={{
         position:"sticky", top:0, zIndex:40,
-        background:"rgba(13,13,13,0.96)", backdropFilter:"blur(12px)",
-        borderBottom:"1px solid rgba(212,175,55,0.12)",
-        padding:"12px 0"
+        background:"rgba(13,13,13,0.97)", backdropFilter:"blur(12px)",
+        borderBottom:"1px solid rgba(212,175,55,0.1)", padding:"12px 0"
       }}>
-        <div
-          ref={catRef}
-          style={{ display:"flex", gap:6, overflowX:"auto", padding:"0 16px" }}
-        >
+        <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"0 16px" }}>
           {CATEGORIES.map(cat => {
             const active = cat === category;
             return (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                style={{
-                  all:"unset", cursor:"pointer",
-                  flexShrink:0,
-                  padding:"8px 16px",
-                  borderRadius:20,
-                  background: active ? "#D4AF37" : "rgba(212,175,55,0.08)",
-                  border: active ? "1px solid #D4AF37" : "1px solid rgba(212,175,55,0.2)",
-                  color: active ? "#0D0D0D" : "#D4AF37",
-                  fontSize:13, fontWeight: active ? 700 : 500,
-                  letterSpacing:"0.04em",
-                  transition:"all 0.18s ease"
-                }}
-              >
+              <button key={cat} onClick={() => setCategory(cat)} style={{
+                all:"unset", cursor:"pointer", flexShrink:0,
+                padding:"8px 16px", borderRadius:20,
+                background: active ? "#D4AF37" : "rgba(212,175,55,0.07)",
+                border: active ? "1px solid #D4AF37" : "1px solid rgba(212,175,55,0.18)",
+                color: active ? "#0D0D0D" : "#D4AF37",
+                fontSize:13, fontWeight: active ? 700 : 500, letterSpacing:"0.03em",
+                transition:"all 0.18s ease"
+              }}>
                 {cat}
               </button>
             );
@@ -499,60 +912,36 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
         </div>
       </div>
 
-      {/* ── Thin separator ── */}
-      <div style={{ margin:"8px 20px 0", height:1, background:"linear-gradient(90deg, #D4AF37 0%, transparent 100%)", opacity:0.2 }} />
-
-      {/* ── Menu items ── */}
-      <div style={{ padding:"8px 16px 80px", display:"flex", flexDirection:"column", gap:2 }}>
+      {/* Menu items */}
+      <div style={{ padding:"4px 16px 80px", display:"flex", flexDirection:"column" }}>
         {items.map((dish, idx) => (
-          <button
-            key={dish.id}
-            onClick={() => onSelectDish(dish)}
-            className="card-hover anim-fade-in"
-            style={{
-              all:"unset", cursor:"pointer", display:"block",
-              padding:"12px 12px",
-              borderBottom:"1px solid rgba(255,255,255,0.05)",
-              animationDelay:`${idx * 0.06}s`
-            }}
-          >
+          <button key={dish.id} onClick={() => onSelectDish(dish)} className="card-hover anim-fade-in" style={{
+            all:"unset", cursor:"pointer", display:"block",
+            padding:"12px",
+            borderBottom:"1px solid rgba(255,255,255,0.05)",
+            animationDelay:`${idx * 0.06}s`
+          }}>
             <div style={{ display:"flex", alignItems:"center", gap:13 }}>
-              {/* Thumbnail */}
               <div style={{
-                width:68, height:68, flexShrink:0,
-                borderRadius:10, overflow:"hidden",
-                border:"1px solid rgba(212,175,55,0.2)"
+                width:70, height:70, flexShrink:0, borderRadius:10, overflow:"hidden",
+                border:"1px solid rgba(212,175,55,0.18)"
               }}>
-                <img
-                  src={dish.thumb}
-                  alt={dish.name}
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                  loading="lazy"
-                />
+                <img src={dish.thumb} alt={dish.name}
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
               </div>
-
-              {/* Name + ingredients preview */}
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={{ color:"#fff", fontSize:15, fontWeight:600, margin:"0 0 4px", lineHeight:1.25 }}>
                   {dish.name}
                 </p>
                 <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                  <span style={{ color:"#D4AF37", fontSize:11 }}>
-                    <Stars rating={dish.rating} small />
-                  </span>
-                  <span style={{ color:"#555", fontSize:11 }}>({dish.reviews})</span>
+                  <span style={{ color:"#D4AF37", fontSize:12 }}><Stars rating={dish.rating} small /></span>
+                  <span style={{ color:"#444", fontSize:11 }}>({dish.reviews})</span>
                 </div>
                 {dish.uploaded && (
-                  <span style={{ color:"#D4AF37", fontSize:10, letterSpacing:"0.06em", fontWeight:600 }}>
-                    ✦ DOKUMENTERT
-                  </span>
+                  <span style={{ color:"#D4AF37", fontSize:10, letterSpacing:"0.06em", fontWeight:700 }}>✦ DOKUMENTERT</span>
                 )}
               </div>
-
-              {/* Price */}
-              <span style={{ color:"#D4AF37", fontSize:15, fontWeight:700, flexShrink:0 }}>
-                {dish.price}
-              </span>
+              <span style={{ color:"#D4AF37", fontSize:15, fontWeight:700, flexShrink:0 }}>{dish.price}</span>
             </div>
           </button>
         ))}
@@ -561,368 +950,292 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
   );
 };
 
-/* ─────────────────────────── MODAL: DISH DETAIL ─────────────────────────── */
+/* ═══════════════════════════ DISH MODAL ═══════════════════════════ */
 
-const DishModal = ({ dish, restaurantName, onClose, onUpload, uploadState }) => {
-  const isUploading = uploadState === "uploading";
-  const isDone      = uploadState === "done";
+const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => (
+  <div className="anim-fade-in" style={{
+    position:"fixed", inset:0, zIndex:100,
+    background:"rgba(0,0,0,0.78)",
+    display:"flex", alignItems:"flex-end"
+  }} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="anim-slide-up" style={{
+      width:"100%", maxHeight:"92vh",
+      background:"#1A1A1A",
+      borderRadius:"22px 22px 0 0",
+      border:"1px solid rgba(212,175,55,0.18)", borderBottom:"none",
+      overflow:"hidden", display:"flex", flexDirection:"column"
+    }}>
+      {/* Hero */}
+      <div style={{ position:"relative", height:255, flexShrink:0 }}>
+        <img src={dish.hero} alt={dish.name}
+          style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #1A1A1A 0%, transparent 55%)" }} />
 
-  return (
-    <div
-      className="anim-fade-in"
-      style={{
-        position:"fixed", inset:0, zIndex:100,
-        background:"rgba(0,0,0,0.75)",
-        display:"flex", alignItems:"flex-end"
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="anim-slide-up"
-        style={{
-          width:"100%", maxHeight:"92vh",
-          background:"#1A1A1A",
-          borderRadius:"22px 22px 0 0",
-          border:"1px solid rgba(212,175,55,0.2)",
-          borderBottom:"none",
-          overflow:"hidden", display:"flex", flexDirection:"column"
-        }}
-      >
-        {/* ── Hero image ── */}
-        <div style={{ position:"relative", height:260, flexShrink:0 }}>
-          <img
-            src={dish.hero}
-            alt={dish.name}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-          />
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #1A1A1A 0%, transparent 55%)" }} />
+        <button onClick={onClose} style={{
+          position:"absolute", top:14, right:14,
+          background:"rgba(13,13,13,0.7)", border:"1px solid #333",
+          borderRadius:"50%", width:34, height:34,
+          display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer"
+        }}>
+          <IconClose />
+        </button>
 
-          {/* Close btn */}
-          <button
-            onClick={onClose}
-            style={{
-              position:"absolute", top:14, right:14,
-              background:"rgba(13,13,13,0.7)", border:"1px solid #333",
-              borderRadius:"50%", width:34, height:34,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer"
-            }}
-          >
-            <IconClose />
-          </button>
-
-          {/* Restaurant tag */}
-          <div style={{
-            position:"absolute", top:14, left:14,
-            background:"rgba(212,175,55,0.15)", border:"1px solid rgba(212,175,55,0.4)",
-            borderRadius:20, padding:"4px 10px", backdropFilter:"blur(6px)"
-          }}>
-            <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600 }}>{restaurantName}</span>
-          </div>
-        </div>
-
-        {/* ── Scrollable content ── */}
-        <div style={{ flex:1, overflowY:"auto", padding:"18px 20px 0" }}>
-
-          {/* Dish name */}
-          <h2 className="gold-text-gradient" style={{ fontSize:24, fontWeight:800, margin:"0 0 4px", letterSpacing:"0.02em" }}>
-            {dish.name}
-          </h2>
-
-          {/* Price */}
-          <p style={{ color:"#888", fontSize:14, margin:"0 0 14px" }}>
-            {dish.price}
-          </p>
-
-          {/* Thin gold line */}
-          <div style={{ height:1, background:"linear-gradient(90deg, #D4AF37, transparent)", opacity:0.4, marginBottom:16 }} />
-
-          {/* Ingredients */}
-          <p style={{ color:"#555", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 6px", fontWeight:600 }}>
-            Ingredienser & allergener
-          </p>
-          <p style={{ color:"#bbb", fontSize:14, lineHeight:1.6, margin:"0 0 20px" }}>
-            {dish.ingredients}
-          </p>
-
-          {/* Rating */}
-          <div style={{
-            background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.15)",
-            borderRadius:12, padding:"12px 16px", marginBottom:20,
-            display:"flex", alignItems:"center", justifyContent:"space-between"
-          }}>
-            <div>
-              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:600 }}>Gjestevurdering</p>
-              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ color:"#D4AF37", fontSize:18 }}>
-                  <Stars rating={dish.rating} />
-                </span>
-                <span style={{ color:"#D4AF37", fontSize:15, fontWeight:700 }}>{dish.rating.toFixed(1)}</span>
-              </div>
-            </div>
-            <p style={{ color:"#888", fontSize:12, margin:0, textAlign:"right" }}>
-              Vurdert av<br />
-              <span style={{ color:"#fff", fontWeight:700 }}>{dish.reviews} gjester</span>
-            </p>
-          </div>
-
-          {/* Upload status */}
-          {dish.uploaded && (
-            <div style={{
-              background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.4)",
-              borderRadius:12, padding:"10px 16px", marginBottom:16,
-              display:"flex", alignItems:"center", gap:10
-            }}>
-              <span style={{ fontSize:20 }}>✦</span>
-              <p style={{ color:"#D4AF37", fontSize:13, margin:0, fontWeight:600 }}>
-                Du har dokumentert denne retten
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* ── Bottom CTA ── */}
-        <div style={{ padding:"16px 20px 32px", flexShrink:0 }}>
-          {isUploading ? (
-            <div style={{
-              background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.2)",
-              borderRadius:14, padding:"18px", display:"flex", alignItems:"center", justifyContent:"center"
-            }}>
-              <GoldSpinner />
-            </div>
-          ) : (
-            <button
-              onClick={() => !dish.uploaded && onUpload()}
-              className={dish.uploaded ? "" : "anim-pulse-gold"}
-              style={{
-                width:"100%", padding:"16px",
-                background: dish.uploaded ? "rgba(212,175,55,0.15)" : "#D4AF37",
-                border: dish.uploaded ? "1px solid rgba(212,175,55,0.4)" : "none",
-                borderRadius:14, cursor: dish.uploaded ? "default" : "pointer",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-                transition:"all 0.2s ease"
-              }}
-            >
-              <span style={{ fontSize:18 }}>{dish.uploaded ? "✓" : "📸"}</span>
-              <span style={{
-                color: dish.uploaded ? "#D4AF37" : "#0D0D0D",
-                fontSize:15, fontWeight:700, letterSpacing:"0.04em"
-              }}>
-                {dish.uploaded ? "Bilde allerede lastet opp" : "Legg til ditt bilde"}
-              </span>
-            </button>
-          )}
+        <div style={{
+          position:"absolute", top:14, left:14,
+          background:"rgba(212,175,55,0.14)", border:"1px solid rgba(212,175,55,0.38)",
+          borderRadius:20, padding:"4px 10px", backdropFilter:"blur(6px)"
+        }}>
+          <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600 }}>{restaurantName}</span>
         </div>
       </div>
-    </div>
-  );
-};
 
-/* ─────────────────────────── MODAL: GOLD COUPON ─────────────────────────── */
+      {/* Content */}
+      <div style={{ flex:1, overflowY:"auto", padding:"18px 20px 0" }}>
+        <h2 className="gold-text-gradient" style={{ fontSize:24, fontWeight:800, margin:"0 0 3px", letterSpacing:"0.02em" }}>
+          {dish.name}
+        </h2>
+        <p style={{ color:"#666", fontSize:14, margin:"0 0 14px" }}>{dish.price}</p>
+
+        <div style={{ height:1, background:"linear-gradient(90deg, #D4AF37, transparent)", opacity:0.35, marginBottom:16 }} />
+
+        <p style={{ color:"#444", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 6px", fontWeight:600 }}>
+          Ingredienser & allergener
+        </p>
+        <p style={{ color:"#bbb", fontSize:14, lineHeight:1.65, margin:"0 0 20px" }}>
+          {dish.ingredients}
+        </p>
+
+        {/* Rating card */}
+        <div style={{
+          background:"rgba(212,175,55,0.05)", border:"1px solid rgba(212,175,55,0.12)",
+          borderRadius:12, padding:"12px 16px", marginBottom:20,
+          display:"flex", alignItems:"center", justifyContent:"space-between"
+        }}>
+          <div>
+            <p style={{ color:"#444", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:600 }}>
+              Gjestevurdering
+            </p>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ color:"#D4AF37", fontSize:18 }}><Stars rating={dish.rating} /></span>
+              <span style={{ color:"#D4AF37", fontSize:15, fontWeight:700 }}>{dish.rating.toFixed(1)}</span>
+            </div>
+          </div>
+          <p style={{ color:"#666", fontSize:12, margin:0, textAlign:"right" }}>
+            Vurdert av<br />
+            <span style={{ color:"#fff", fontWeight:700 }}>{dish.reviews} gjester</span>
+          </p>
+        </div>
+
+        {dish.uploaded && (
+          <div style={{
+            background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.3)",
+            borderRadius:12, padding:"10px 16px", marginBottom:16,
+            display:"flex", alignItems:"center", gap:10
+          }}>
+            <span style={{ fontSize:18 }}>✦</span>
+            <p style={{ color:"#D4AF37", fontSize:13, margin:0, fontWeight:600 }}>Du har dokumentert denne retten</p>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom CTA */}
+      <div style={{ padding:"16px 20px 34px", flexShrink:0 }}>
+        <button
+          onClick={() => !dish.uploaded && onUploadClick()}
+          className={dish.uploaded ? "" : "anim-pulse-gold"}
+          style={{
+            width:"100%", padding:"16px",
+            background: dish.uploaded ? "rgba(212,175,55,0.12)" : "#D4AF37",
+            border: dish.uploaded ? "1px solid rgba(212,175,55,0.35)" : "none",
+            borderRadius:14, cursor: dish.uploaded ? "default" : "pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            transition:"all 0.2s ease"
+          }}
+        >
+          <span style={{ fontSize:18 }}>{dish.uploaded ? "✓" : "📸"}</span>
+          <span style={{
+            color: dish.uploaded ? "#D4AF37" : "#0D0D0D",
+            fontSize:15, fontWeight:700, letterSpacing:"0.04em"
+          }}>
+            {dish.uploaded ? "Bilde allerede lastet opp" : "Legg til ditt bilde"}
+          </span>
+        </button>
+        {!dish.uploaded && (
+          <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"9px 0 0" }}>
+            AI godkjenner kun skarpe, appetittvekkende matbilder
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+/* ═══════════════════════════ COUPON MODAL ═══════════════════════════ */
 
 const CouponModal = ({ dish, points, onUse, onClose }) => {
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div
-      className="anim-fade-in"
-      style={{
-        position:"fixed", inset:0, zIndex:200,
-        background:"rgba(0,0,0,0.88)",
-        display:"flex", alignItems:"center", justifyContent:"center",
-        padding:"24px"
-      }}
-    >
-      <div
-        className="anim-scale-pop"
-        style={{
-          width:"100%", maxWidth:380,
-          background:"#141414",
-          borderRadius:20,
-          border:"1px solid #D4AF37",
-          boxShadow:"0 0 60px rgba(212,175,55,0.3), inset 0 0 40px rgba(212,175,55,0.03)",
-          overflow:"hidden"
-        }}
-      >
-        {/* Gold top band */}
-        <div style={{
-          height:4,
-          background:"linear-gradient(90deg, #9A7D22 0%, #F0D060 30%, #D4AF37 60%, #9A7D22 100%)"
-        }} />
+    <div className="anim-fade-in" style={{
+      position:"fixed", inset:0, zIndex:300,
+      background:"rgba(0,0,0,0.9)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:"24px"
+    }}>
+      <div className="anim-scale-pop" style={{
+        width:"100%", maxWidth:380,
+        background:"#141414", borderRadius:20,
+        border:"1px solid #D4AF37",
+        boxShadow:"0 0 70px rgba(212,175,55,0.25), inset 0 0 40px rgba(212,175,55,0.02)",
+        overflow:"hidden"
+      }}>
+        <div style={{ height:4, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
 
         <div style={{ padding:"28px 24px 24px" }}>
-          {/* Crown + sparkle */}
           <div style={{ textAlign:"center", marginBottom:18 }}>
-            <div className="anim-gold-shimmer" style={{ fontSize:44, lineHeight:1 }}>👑</div>
+            <div className="anim-gold-shimmer" style={{ fontSize:48, lineHeight:1 }}>👑</div>
             <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:8 }}>
-              {["✦","✦","✦"].map((s,i) => (
-                <span key={i} style={{ color:"#D4AF37", fontSize:12 }}>{s}</span>
-              ))}
+              {["✦","✦","✦"].map((s,i) => <span key={i} style={{ color:"#D4AF37", fontSize:11 }}>{s}</span>)}
             </div>
           </div>
 
-          {/* Title */}
           <h2 className="gold-text-gradient" style={{
             fontSize:22, fontWeight:900, textAlign:"center",
-            letterSpacing:"0.08em", margin:"0 0 8px",
-            textTransform:"uppercase"
+            letterSpacing:"0.08em", margin:"0 0 8px", textTransform:"uppercase"
           }}>
             Gullstatus oppnådd!
           </h2>
-
-          {/* Subtitle */}
-          <p style={{ color:"#888", fontSize:12, textAlign:"center", margin:"0 0 20px", lineHeight:1.55, letterSpacing:"0.02em" }}>
+          <p style={{ color:"#777", fontSize:12, textAlign:"center", margin:"0 0 20px", lineHeight:1.6 }}>
             Du var den første til å dokumentere<br />
-            <span style={{ color:"#fff", fontWeight:600 }}>"{dish.name}"</span>
+            <span style={{ color:"#fff", fontWeight:600 }}>"{dish?.name}"</span>
           </p>
 
-          {/* Divider */}
-          <div style={{ margin:"0 auto 20px", width:"80%", height:1, background:"linear-gradient(90deg, transparent, #D4AF37, transparent)", opacity:0.5 }} />
+          <div style={{ margin:"0 auto 20px", width:"75%", height:1, background:"linear-gradient(90deg,transparent,#D4AF37,transparent)", opacity:0.45 }} />
 
-          {/* Coupon box */}
           <div style={{
-            background:"rgba(212,175,55,0.06)",
-            border:"1px dashed rgba(212,175,55,0.5)",
-            borderRadius:14, padding:"16px",
-            marginBottom:20, textAlign:"center"
+            background:"rgba(212,175,55,0.06)", border:"1px dashed rgba(212,175,55,0.4)",
+            borderRadius:14, padding:"16px", marginBottom:20, textAlign:"center"
           }}>
-            <p style={{ color:"#888", fontSize:11, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 8px" }}>
-              Din fordel
-            </p>
-            <p style={{ color:"#fff", fontSize:15, fontWeight:600, lineHeight:1.5, margin:0 }}>
+            <p style={{ color:"#666", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 8px" }}>Din fordel</p>
+            <p style={{ color:"#fff", fontSize:15, fontWeight:600, lineHeight:1.55, margin:0 }}>
               Vis denne skjermen i baren for en<br />
-              <span style={{ color:"#D4AF37", fontWeight:800 }}>
-                gratis valgfri mineralvann eller brus
-              </span><br />
+              <span style={{ color:"#D4AF37", fontWeight:800 }}>gratis valgfri mineralvann eller brus</span><br />
               fra restauranten.
             </p>
           </div>
 
-          {/* Points badge */}
           <div style={{
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            background:"rgba(212,175,55,0.08)", borderRadius:10, padding:"10px 16px",
-            marginBottom:24, border:"1px solid rgba(212,175,55,0.15)"
+            background:"rgba(212,175,55,0.07)", borderRadius:10, padding:"10px 16px",
+            marginBottom:24, border:"1px solid rgba(212,175,55,0.12)"
           }}>
-            <span style={{ color:"#D4AF37", fontSize:18 }}>✦</span>
-            <span style={{ color:"#D4AF37", fontSize:14, fontWeight:700 }}>+100 poeng etter bruk</span>
-            <span style={{ color:"#555", fontSize:13, fontWeight:500 }}>·</span>
-            <span style={{ color:"#888", fontSize:13 }}>Totalt: {points + 100}</span>
+            <span style={{ color:"#D4AF37", fontSize:16 }}>✦</span>
+            <span style={{ color:"#D4AF37", fontSize:13, fontWeight:700 }}>+100 poeng etter bruk</span>
+            <span style={{ color:"#333", fontSize:12 }}>·</span>
+            <span style={{ color:"#666", fontSize:12 }}>Totalt: {points + 100}</span>
           </div>
 
-          {/* Buttons */}
           {!showConfirm ? (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <button
-                onClick={() => setShowConfirm(true)}
-                className="anim-pulse-gold"
-                style={{
-                  width:"100%", padding:"15px",
-                  background:"#D4AF37", border:"none",
-                  borderRadius:13, cursor:"pointer",
-                  fontSize:14, fontWeight:800, color:"#0D0D0D",
-                  letterSpacing:"0.05em"
-                }}
-              >
+              <button onClick={() => setShowConfirm(true)} className="anim-pulse-gold" style={{
+                width:"100%", padding:"15px",
+                background:"#D4AF37", border:"none", borderRadius:13, cursor:"pointer",
+                fontSize:14, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.05em"
+              }}>
                 Bruk kupong
               </button>
-              <button
-                onClick={onClose}
-                style={{
-                  width:"100%", padding:"13px",
-                  background:"transparent", border:"1px solid #333",
-                  borderRadius:13, cursor:"pointer",
-                  fontSize:13, color:"#888"
-                }}
-              >
+              <button onClick={onClose} style={{
+                width:"100%", padding:"12px",
+                background:"transparent", border:"1px solid #2a2a2a", borderRadius:13, cursor:"pointer",
+                fontSize:13, color:"#555"
+              }}>
                 Lukk — bruk senere
               </button>
             </div>
           ) : (
             <div style={{
-              background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.3)",
+              background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.25)",
               borderRadius:14, padding:"16px"
             }}>
-              <p style={{ color:"#fff", fontSize:14, textAlign:"center", margin:"0 0 14px", fontWeight:600 }}>
+              <p style={{ color:"#fff", fontSize:14, textAlign:"center", margin:"0 0 8px", fontWeight:700 }}>
                 Er du sikker?
               </p>
-              <p style={{ color:"#888", fontSize:12, textAlign:"center", margin:"0 0 16px", lineHeight:1.5 }}>
-                Vis denne bekreftelsen til servitøren.<br />Kupongen kan kun brukes én gang.
+              <p style={{ color:"#666", fontSize:12, textAlign:"center", margin:"0 0 16px", lineHeight:1.55 }}>
+                Vis denne bekreftelsen til servitøren.<br />
+                Kupongen kan kun brukes én gang.
               </p>
               <div style={{ display:"flex", gap:8 }}>
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  style={{
-                    flex:1, padding:"12px",
-                    background:"transparent", border:"1px solid #333",
-                    borderRadius:11, cursor:"pointer",
-                    fontSize:13, color:"#888"
-                  }}
-                >
+                <button onClick={() => setShowConfirm(false)} style={{
+                  flex:1, padding:"12px",
+                  background:"transparent", border:"1px solid #333", borderRadius:11, cursor:"pointer",
+                  fontSize:13, color:"#666"
+                }}>
                   Avbryt
                 </button>
-                <button
-                  onClick={onUse}
-                  style={{
-                    flex:2, padding:"12px",
-                    background:"#D4AF37", border:"none",
-                    borderRadius:11, cursor:"pointer",
-                    fontSize:13, fontWeight:800, color:"#0D0D0D"
-                  }}
-                >
+                <button onClick={onUse} style={{
+                  flex:2, padding:"12px",
+                  background:"#D4AF37", border:"none", borderRadius:11, cursor:"pointer",
+                  fontSize:13, fontWeight:800, color:"#0D0D0D"
+                }}>
                   ✓ Bekreft bruk
                 </button>
               </div>
             </div>
           )}
         </div>
-
-        {/* Bottom band */}
-        <div style={{
-          height:4,
-          background:"linear-gradient(90deg, #9A7D22 0%, #F0D060 30%, #D4AF37 60%, #9A7D22 100%)"
-        }} />
+        <div style={{ height:4, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
       </div>
     </div>
   );
 };
 
-/* ─────────────────────────── POINTS TOAST ─────────────────────────── */
+/* ═══════════════════════════ POINTS TOAST ═══════════════════════════ */
 
 const PointsToast = ({ points, visible }) => (
-  <div
-    style={{
-      position:"fixed", top:20, left:"50%",
-      transform:"translateX(-50%)",
-      zIndex:300,
-      background:"#1A1A1A", border:"1px solid #D4AF37",
-      borderRadius:30, padding:"10px 20px",
-      display:"flex", alignItems:"center", gap:8,
-      opacity: visible ? 1 : 0,
-      transition:"opacity 0.4s ease",
-      pointerEvents:"none",
-      boxShadow:"0 4px 30px rgba(212,175,55,0.25)"
-    }}
-  >
-    <span style={{ color:"#D4AF37", fontSize:16 }}>✦</span>
+  <div style={{
+    position:"fixed", top:20, left:"50%", transform:"translateX(-50%)",
+    zIndex:600,
+    background:"#1A1A1A", border:"1px solid #D4AF37",
+    borderRadius:30, padding:"10px 20px",
+    display:"flex", alignItems:"center", gap:8,
+    opacity: visible ? 1 : 0,
+    transition:"opacity 0.4s ease",
+    pointerEvents:"none",
+    boxShadow:"0 4px 30px rgba(212,175,55,0.3)"
+  }}>
+    <span style={{ color:"#D4AF37", fontSize:15 }}>✦</span>
     <span style={{ color:"#fff", fontSize:13, fontWeight:700 }}>+100 poeng opptjent!</span>
-    <span style={{ color:"#888", fontSize:12 }}>Totalt: {points}</span>
+    <span style={{ color:"#666", fontSize:12 }}>Totalt: {points}</span>
   </div>
 );
 
-/* ─────────────────────────── APP ─────────────────────────── */
+/* ═══════════════════════════ APP ═══════════════════════════ */
 
 const App = () => {
-  const [screen,             setScreen]             = useState("discover");
+  const [screen,             setScreen]             = useState('discover');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [selectedDish,       setSelectedDish]       = useState(null);
-  const [uploadState,        setUploadState]        = useState("idle"); // idle | uploading | done
-  const [showCoupon,         setShowCoupon]         = useState(false);
   const [uploadedDishes,     setUploadedDishes]     = useState(new Set());
+  const [showCoupon,         setShowCoupon]         = useState(false);
   const [totalPoints,        setTotalPoints]        = useState(0);
   const [showToast,          setShowToast]          = useState(false);
 
-  /* Deep-copied restaurant data with uploaded state merged in */
+  // AI upload flow
+  const [apiKey,          setApiKey]         = useState(() => localStorage.getItem('dishy_apikey') || '');
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [capturedImage,   setCapturedImage]  = useState(null); // { preview, base64, mime }
+  const [showImageModal,  setShowImageModal] = useState(false);
+
+  const fileInputRef = useRef(null);
+
+  const openFilePicker = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  // Restaurants with uploaded state merged in
   const restaurantsWithState = RESTAURANTS.map(r => ({
     ...r,
     menu: Object.fromEntries(
@@ -933,96 +1246,139 @@ const App = () => {
     )
   }));
 
-  const handleSelectRestaurant = (r) => {
-    setSelectedRestaurant(r);
-    setScreen("restaurant");
-  };
+  const currentRestaurant = selectedRestaurant
+    ? restaurantsWithState.find(r => r.id === selectedRestaurant.id)
+    : null;
+
+  /* ── Handlers ── */
+
+  const handleSelectRestaurant = r => { setSelectedRestaurant(r); setScreen('restaurant'); };
 
   const handleBack = () => {
-    setScreen("discover");
+    setScreen('discover');
     setSelectedDish(null);
-    setUploadState("idle");
     setShowCoupon(false);
+    setShowImageModal(false);
+    setCapturedImage(null);
   };
 
-  const handleSelectDish = (dish) => {
-    setSelectedDish({ ...dish, uploaded: uploadedDishes.has(dish.id) });
-    setUploadState("idle");
+  const handleSelectDish = dish => {
+    const enriched = { ...dish, uploaded: uploadedDishes.has(dish.id) };
+    setSelectedDish(enriched);
   };
 
-  const handleCloseDish = () => {
-    setSelectedDish(null);
-    setUploadState("idle");
+  const handleCloseDish = () => setSelectedDish(null);
+
+  const handleUploadClick = () => {
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+    } else {
+      openFilePicker();
+    }
   };
 
-  const handleUpload = () => {
-    setUploadState("uploading");
-    setTimeout(() => {
-      setUploadState("done");
-      if (selectedDish) {
-        setUploadedDishes(prev => new Set([...prev, selectedDish.id]));
-        setSelectedDish(prev => ({ ...prev, uploaded: true }));
-      }
-      setTimeout(() => {
-        setShowCoupon(true);
-      }, 400);
-    }, 1500);
+  const handleSaveApiKey = key => {
+    localStorage.setItem('dishy_apikey', key);
+    setApiKey(key);
+    setShowApiKeyModal(false);
+    setTimeout(openFilePicker, 120);
+  };
+
+  const handleFileSelected = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const resized = await resizeImage(ev.target.result);
+      const [, base64] = resized.split(',');
+      setCapturedImage({ preview: resized, base64, mime: 'image/jpeg' });
+      setShowImageModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRetake = () => {
+    setShowImageModal(false);
+    setCapturedImage(null);
+    setTimeout(openFilePicker, 120);
+  };
+
+  const handleApproved = () => {
+    setShowImageModal(false);
+    setCapturedImage(null);
+    if (selectedDish) {
+      setUploadedDishes(prev => new Set([...prev, selectedDish.id]));
+      setSelectedDish(prev => ({ ...prev, uploaded: true }));
+    }
+    setTimeout(() => setShowCoupon(true), 350);
+  };
+
+  const handleCloseImageModal = () => {
+    setShowImageModal(false);
+    setCapturedImage(null);
+  };
+
+  const handleBadKey = () => {
+    setShowImageModal(false);
+    setCapturedImage(null);
+    localStorage.removeItem('dishy_apikey');
+    setApiKey('');
+    setTimeout(() => setShowApiKeyModal(true), 350);
   };
 
   const handleUseCoupon = () => {
     setShowCoupon(false);
     setSelectedDish(null);
-    setUploadState("idle");
-    const newPoints = totalPoints + 100;
-    setTotalPoints(newPoints);
+    const newPts = totalPoints + 100;
+    setTotalPoints(newPts);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    setTimeout(() => setShowToast(false), 3200);
   };
 
   const handleCloseCoupon = () => {
     setShowCoupon(false);
     setSelectedDish(null);
-    setUploadState("idle");
   };
 
-  /* Resolve restaurant with updated state */
-  const currentRestaurant = selectedRestaurant
-    ? restaurantsWithState.find(r => r.id === selectedRestaurant.id)
-    : null;
+  // Show settings: clear API key to re-prompt
+  const handleSettings = () => setShowApiKeyModal(true);
 
   return (
-    <div style={{
-      background:"#0D0D0D",
-      minHeight:"100vh",
-      maxWidth:430,
-      margin:"0 auto",
-      position:"relative",
-      overflow:"hidden"
-    }}>
-      {/* Points indicator (always visible) */}
+    <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" }}>
+
+      {/* Hidden file input — no capture attribute so user can choose camera OR gallery */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        style={{ display:"none" }}
+        onChange={handleFileSelected}
+      />
+
+      {/* Points badge */}
       {totalPoints > 0 && (
         <div style={{
-          position:"fixed", top:14, right:16, zIndex:90,
-          background:"rgba(212,175,55,0.12)",
-          border:"1px solid rgba(212,175,55,0.35)",
-          borderRadius:20, padding:"5px 12px",
-          display:"flex", alignItems:"center", gap:5
+          position:"fixed", bottom:24, right:16, zIndex:90,
+          background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.35)",
+          borderRadius:20, padding:"6px 13px",
+          display:"flex", alignItems:"center", gap:5,
+          pointerEvents:"none"
         }}>
-          <span style={{ color:"#D4AF37", fontSize:11 }}>✦</span>
-          <span style={{ color:"#D4AF37", fontSize:12, fontWeight:700 }}>{totalPoints} p</span>
+          <span style={{ color:"#D4AF37", fontSize:12 }}>✦</span>
+          <span style={{ color:"#D4AF37", fontSize:12, fontWeight:700 }}>{totalPoints} poeng</span>
         </div>
       )}
 
-      {/* Screen 1 */}
-      {screen === "discover" && (
+      {/* Screens */}
+      {screen === 'discover' && (
         <DiscoverScreen
           restaurants={restaurantsWithState}
           onSelect={handleSelectRestaurant}
+          onSettings={handleSettings}
         />
       )}
-
-      {/* Screen 2 */}
-      {screen === "restaurant" && currentRestaurant && (
+      {screen === 'restaurant' && currentRestaurant && !showImageModal && (
         <RestaurantScreen
           restaurant={currentRestaurant}
           onBack={handleBack}
@@ -1030,18 +1386,39 @@ const App = () => {
         />
       )}
 
-      {/* Dish modal (Screen 3) */}
-      {selectedDish && !showCoupon && (
+      {/* Dish modal */}
+      {selectedDish && !showCoupon && !showImageModal && (
         <DishModal
           dish={selectedDish}
           restaurantName={selectedRestaurant?.name}
           onClose={handleCloseDish}
-          onUpload={handleUpload}
-          uploadState={uploadState}
+          onUploadClick={handleUploadClick}
         />
       )}
 
-      {/* Gold coupon modal */}
+      {/* API key modal */}
+      {showApiKeyModal && !showImageModal && (
+        <ApiKeyModal
+          onSave={handleSaveApiKey}
+          onClose={() => setShowApiKeyModal(false)}
+        />
+      )}
+
+      {/* Image upload + AI validation modal */}
+      {showImageModal && capturedImage && (
+        <ImageUploadModal
+          dish={selectedDish}
+          restaurantName={selectedRestaurant?.name}
+          apiKey={apiKey}
+          imageData={capturedImage}
+          onRetake={handleRetake}
+          onApproved={handleApproved}
+          onClose={handleCloseImageModal}
+          onBadKey={handleBadKey}
+        />
+      )}
+
+      {/* Gold coupon */}
       {showCoupon && selectedDish && (
         <CouponModal
           dish={selectedDish}
@@ -1057,7 +1434,7 @@ const App = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
