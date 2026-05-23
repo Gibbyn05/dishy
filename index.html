@@ -804,7 +804,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
       {phase === 'rejected' && (
         <div className="anim-fade-in" style={{ flex:1, display:"flex", flexDirection:"column" }}>
           {/* Dimmed image backdrop */}
-          <div style={{ position:"relative", height:"40%", overflow:"hidden" }}>
+          <div style={{ position:"relative", height:200, flexShrink:0, overflow:"hidden" }}>
             <img
               src={imageData.preview}
               alt=""
@@ -814,7 +814,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
           </div>
 
           {/* Content */}
-          <div style={{ flex:1, padding:"28px 24px 40px", display:"flex", flexDirection:"column" }}>
+          <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"28px 24px 20px", display:"flex", flexDirection:"column" }}>
             {/* X icon */}
             <div className="anim-scale-pop" style={{ textAlign:"center", marginBottom:16 }}>
               <div style={{
@@ -857,7 +857,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
               ))}
             </div>
 
-            <div style={{ marginTop:"auto", display:"flex", flexDirection:"column", gap:10 }}>
+            <div style={{ marginTop:24, display:"flex", flexDirection:"column", gap:10 }}>
               <button
                 onClick={onRetake}
                 style={{
@@ -1120,7 +1120,7 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => (
       </div>
 
       {/* Content */}
-      <div style={{ flex:1, overflowY:"auto", padding:"18px 20px 0" }}>
+      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"18px 20px 0" }}>
         <h2 className="gold-text-gradient" style={{ fontSize:24, fontWeight:800, margin:"0 0 3px", letterSpacing:"0.02em" }}>
           {dish.name}
         </h2>
@@ -1210,14 +1210,14 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
       position:"fixed", inset:0, zIndex:300,
       background:"rgba(0,0,0,0.9)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"24px"
+      padding:"24px", overflowY:"auto", WebkitOverflowScrolling:"touch"
     }}>
       <div className="anim-scale-pop" style={{
         width:"100%", maxWidth:380,
         background:"#141414", borderRadius:20,
         border:"1px solid #D4AF37",
         boxShadow:"0 0 70px rgba(212,175,55,0.25), inset 0 0 40px rgba(212,175,55,0.02)",
-        overflow:"hidden"
+        overflow:"hidden", maxHeight:"90vh", overflowY:"auto"
       }}>
         <div style={{ height:4, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
 
