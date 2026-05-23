@@ -496,6 +496,29 @@ const RESTAURANTS = [
 
 const CATEGORIES = ["Småretter","Hovedretter","Snacks","Dessert"];
 
+/* ═══════════════════════════ LEAGUES ═══════════════════════════ */
+
+const LEAGUES = [
+  { min:0,  max:2,  name:"Mat-Aspirant",   color:"#aaaaaa", icon:"🍽️", nextName:"Bronse-Gourmet", nextAt:3  },
+  { min:3,  max:9,  name:"Bronse-Gourmet", color:"#CD7F32", icon:"🥉", nextName:"Sølv-Kritiker",  nextAt:10 },
+  { min:10, max:24, name:"Sølv-Kritiker",  color:"#C0C0C0", icon:"🥈", nextName:"Gull-Elite",      nextAt:25 },
+  { min:25, max:49, name:"Gull-Elite",     color:"#D4AF37", icon:"🥇", nextName:"Kulinarisk VIP",  nextAt:50 },
+  { min:50, max:Infinity, name:"Kulinarisk VIP", color:"#FFD700", icon:"👑", nextName:null, nextAt:null },
+];
+const getLeague = count => LEAGUES.find(l => count >= l.min && count <= l.max) || LEAGUES[0];
+const getLeagueProgress = count => {
+  const l = getLeague(count);
+  if (!l.nextAt) return 100;
+  return Math.min(((count - l.min) / (l.nextAt - l.min)) * 100, 100);
+};
+const getMotivationText = count => {
+  const l = getLeague(count);
+  if (!l.nextAt) return 'Gullstatus oppnådd. Du sitter på The Chef\'s Table. ✨';
+  const rem = l.nextAt - count;
+  const verb = l.min === 0 ? 'rykke opp til' : l.min === 3 ? 'nå' : l.min === 10 ? 'nå den eksklusive' : 'oppnå den ultimate';
+  return `📸 Ta bilde av ${rem} rett${rem !== 1 ? 'er' : ''} til for å ${verb} ${l.nextName}!`;
+};
+
 /* ═══════════════════════════ UTILITIES ═══════════════════════════ */
 
 const resizeImage = (dataUrl, maxPx = 1280) => new Promise(resolve => {
@@ -564,6 +587,18 @@ const IconRetry = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="2.2" strokeLinecap="round">
     <polyline points="1 4 1 10 7 10"/>
     <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+  </svg>
+);
+const IconCompass = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#D4AF37" : "#555"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill={active ? "#D4AF37" : "none"} stroke={active ? "#D4AF37" : "#555"}/>
+  </svg>
+);
+const IconUser = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#D4AF37" : "#555"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
   </svg>
 );
 
@@ -893,7 +928,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
 /* ═══════════════════════════ SCREEN 1: DISCOVER ═══════════════════════════ */
 
 const DiscoverScreen = ({ restaurants, onSelect }) => (
-  <div style={{ background:"#0D0D0D", minHeight:"100vh" }}>
+  <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }}>
     {/* Header */}
     <div style={{
       position:"sticky", top:0, zIndex:50,
@@ -1043,7 +1078,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
       </div>
 
       {/* Menu items */}
-      <div style={{ padding:"4px 16px 80px", display:"flex", flexDirection:"column" }}>
+      <div style={{ padding:"4px 16px 100px", display:"flex", flexDirection:"column" }}>
         {items.map((dish, idx) => (
           <button key={dish.id} onClick={() => onSelectDish(dish)} className="card-hover anim-fade-in" style={{
             all:"unset", cursor:"pointer", display:"block",
@@ -1200,6 +1235,208 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => (
   </div>
 );
 
+/* ═══════════════════════════ BOTTOM NAV ═══════════════════════════ */
+
+const BottomNav = ({ activeTab, onTabChange }) => (
+  <div style={{
+    position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+    width:"100%", maxWidth:430, zIndex:200,
+    background:"rgba(13,13,13,0.97)", backdropFilter:"blur(16px)",
+    borderTop:"1px solid rgba(212,175,55,0.15)",
+    display:"flex"
+  }}>
+    {[
+      { id:"explore", label:"Utforsk", Icon: IconCompass },
+      { id:"profile", label:"Profil",  Icon: IconUser },
+    ].map(({ id, label, Icon }) => {
+      const active = activeTab === id;
+      return (
+        <button key={id} onClick={() => onTabChange(id)} style={{
+          all:"unset", cursor:"pointer", flex:1,
+          display:"flex", flexDirection:"column", alignItems:"center",
+          padding:"10px 0 14px", gap:4
+        }}>
+          <Icon active={active} />
+          <span style={{
+            fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase",
+            color: active ? "#D4AF37" : "#555", fontWeight: active ? 700 : 400
+          }}>{label}</span>
+        </button>
+      );
+    })}
+  </div>
+);
+
+/* ═══════════════════════════ PROFILE SCREEN ═══════════════════════════ */
+
+const ProfileScreen = ({ uploadCount, coupons, onUseCoupon, savedDishes, profileTab, setProfileTab }) => {
+  const league   = getLeague(uploadCount);
+  const progress = getLeagueProgress(uploadCount);
+  const motText  = getMotivationText(uploadCount);
+  const active   = coupons.filter(c => !c.used);
+
+  return (
+    <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }} className="anim-fade-in">
+      {/* Header */}
+      <div style={{
+        padding:"20px 20px 16px",
+        borderBottom:"1px solid rgba(212,175,55,0.1)"
+      }}>
+        <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:800, letterSpacing:"0.07em", margin:0 }}>
+          MIN PROFIL
+        </h1>
+        <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.5 }} />
+      </div>
+
+      {/* VIP Membership Card */}
+      <div style={{ margin:"20px 20px 0" }}>
+        <div style={{
+          background:"linear-gradient(135deg, #1a1a1a 0%, #111 100%)",
+          border:"1px solid rgba(212,175,55,0.45)",
+          borderRadius:18, padding:"20px 20px 18px",
+          position:"relative", overflow:"hidden",
+          boxShadow:"0 0 40px rgba(212,175,55,0.08)"
+        }}>
+          {/* Gold corner accents */}
+          {[{top:0,left:0,bT:"16px 0 0 0"},{top:0,right:0,bT:"0 16px 0 0"},{bottom:0,left:0,bT:"0 0 0 16px"},{bottom:0,right:0,bT:"0 0 16px 0"}].map((s,i)=>(
+            <div key={i} style={{
+              position:"absolute", width:28, height:28,
+              top:s.top, bottom:s.bottom, left:s.left, right:s.right,
+              border:"2px solid #D4AF37", borderRadius:s.bT,
+              borderRight: s.left===0 ? "none" : "2px solid #D4AF37",
+              borderLeft:  s.right===0 ? "none" : "2px solid #D4AF37",
+              borderBottom:s.top===0 ? "none" : "2px solid #D4AF37",
+              borderTop:   s.bottom===0 ? "none" : "2px solid #D4AF37",
+            }}/>
+          ))}
+
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+            <div>
+              <p style={{ color:"#666", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 5px" }}>
+                DISHY VIP MEMBER
+              </p>
+              <h2 style={{ color:"#fff", fontSize:21, fontWeight:700, margin:0 }}>Markus Krakeli</h2>
+            </div>
+            <span style={{ fontSize:30, lineHeight:1 }}>{league.icon}</span>
+          </div>
+
+          <div style={{ display:"flex", gap:24 }}>
+            <div>
+              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Liga</p>
+              <p style={{ color:league.color, fontSize:14, fontWeight:700, margin:0,
+                ...(league.name==='Kulinarisk VIP' ? {textShadow:"0 0 10px #FFD700"} : {})
+              }}>{league.name}</p>
+            </div>
+            <div>
+              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Dokumentert</p>
+              <p style={{ color:"#D4AF37", fontSize:14, fontWeight:700, margin:0 }}>{uploadCount} {uploadCount===1?'rett':'retter'}</p>
+            </div>
+            <div>
+              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Kuponger</p>
+              <p style={{ color:"#D4AF37", fontSize:14, fontWeight:700, margin:0 }}>{active.length} aktive</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar + motivation */}
+      <div style={{ margin:"16px 20px 0" }}>
+        <div style={{ height:3, background:"#1a1a1a", borderRadius:2, overflow:"hidden" }}>
+          <div style={{
+            height:"100%", width:`${progress}%`,
+            background:"linear-gradient(90deg, #9A7D22, #F0D060)",
+            borderRadius:2, transition:"width 0.7s ease"
+          }}/>
+        </div>
+        <p style={{ color:"#777", fontSize:12, margin:"10px 0 0", lineHeight:1.5 }}>{motText}</p>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex", gap:8, margin:"20px 20px 0" }}>
+        {[['coupons','Mine Kuponger'],['saved','Mine Lagrede Retter']].map(([id,label]) => {
+          const active = profileTab === id;
+          return (
+            <button key={id} onClick={() => setProfileTab(id)} style={{
+              all:"unset", cursor:"pointer", flex:1, textAlign:"center",
+              padding:"10px 8px", borderRadius:12,
+              background: active ? "rgba(212,175,55,0.12)" : "transparent",
+              border: active ? "1px solid rgba(212,175,55,0.4)" : "1px solid rgba(255,255,255,0.06)",
+              color: active ? "#D4AF37" : "#555",
+              fontSize:12, fontWeight: active ? 700 : 400,
+              transition:"all 0.2s ease"
+            }}>{label}</button>
+          );
+        })}
+      </div>
+
+      {/* Tab content */}
+      <div style={{ padding:"16px 20px" }}>
+        {profileTab === 'coupons' && (
+          active.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"48px 0" }}>
+              <span style={{ fontSize:36 }}>🎟️</span>
+              <p style={{ color:"#444", fontSize:14, marginTop:14, lineHeight:1.6 }}>
+                Ingen aktive kuponger ennå.<br/>
+                <span style={{ color:"#D4AF37" }}>Last opp bilder for å vinne!</span>
+              </p>
+            </div>
+          ) : (
+            active.map(c => (
+              <div key={c.id} style={{
+                background:"#141414", border:"1px solid rgba(212,175,55,0.25)",
+                borderRadius:14, padding:"16px", marginBottom:12
+              }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                  <span style={{ fontSize:22 }}>🎁</span>
+                  <div>
+                    <p style={{ color:"#fff", fontSize:14, fontWeight:600, margin:0 }}>Gratis brus / mineralvann</p>
+                    <p style={{ color:"#888", fontSize:12, margin:"3px 0 0" }}>{c.dishName} · {c.restaurantName}</p>
+                  </div>
+                </div>
+                <button onClick={() => onUseCoupon(c.id)} style={{
+                  width:"100%", padding:"12px",
+                  background:"#D4AF37", border:"none", borderRadius:10,
+                  cursor:"pointer", fontSize:13, fontWeight:700, color:"#0D0D0D"
+                }}>
+                  Bruk i baren
+                </button>
+              </div>
+            ))
+          )
+        )}
+
+        {profileTab === 'saved' && (
+          savedDishes.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"48px 0" }}>
+              <span style={{ fontSize:36 }}>🔖</span>
+              <p style={{ color:"#444", fontSize:14, marginTop:14, lineHeight:1.6 }}>
+                Ingen lagrede retter ennå.<br/>
+                <span style={{ color:"#D4AF37" }}>Bokmerke favorittene dine!</span>
+              </p>
+            </div>
+          ) : (
+            savedDishes.map(d => (
+              <div key={d.id} style={{
+                display:"flex", alignItems:"center", gap:13,
+                padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)"
+              }}>
+                <div style={{ width:60, height:60, flexShrink:0, borderRadius:10, overflow:"hidden", border:"1px solid rgba(212,175,55,0.2)" }}>
+                  <img src={d.thumb} alt={d.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:"#fff", fontSize:14, fontWeight:600, margin:"0 0 3px" }}>{d.name}</p>
+                  <p style={{ color:"#888", fontSize:12, margin:"0 0 3px" }}>{d.restaurantName}</p>
+                  <p style={{ color:"#D4AF37", fontSize:12, fontWeight:700, margin:0 }}>{d.price}</p>
+                </div>
+              </div>
+            ))
+          )
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ═══════════════════════════ COUPON MODAL ═══════════════════════════ */
 
 const CouponModal = ({ dish, points, onUse, onClose }) => {
@@ -1342,10 +1579,16 @@ const PointsToast = ({ points, visible }) => (
 /* ═══════════════════════════ APP ═══════════════════════════ */
 
 const App = () => {
+  const [navTab,             setNavTab]             = useState('explore');
+  const [profileTab,         setProfileTab]         = useState('coupons');
   const [screen,             setScreen]             = useState('discover');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [selectedDish,       setSelectedDish]       = useState(null);
   const [uploadedDishes,     setUploadedDishes]     = useState(new Set());
+  const [bookmarkedDishes,   setBookmarkedDishes]   = useState(new Set());
+  const [coupons,            setCoupons]            = useState([
+    { id:1, dishName:"Østers naturell", restaurantName:"Køl Bar & Bistro", used:false }
+  ]);
   const [showCoupon,         setShowCoupon]         = useState(false);
   const [totalPoints,        setTotalPoints]        = useState(0);
   const [showToast,          setShowToast]          = useState(false);
@@ -1424,8 +1667,21 @@ const App = () => {
     if (selectedDish) {
       setUploadedDishes(prev => new Set([...prev, selectedDish.id]));
       setSelectedDish(prev => ({ ...prev, uploaded: true }));
+      setCoupons(prev => [...prev, {
+        id: Date.now(),
+        dishName: selectedDish.name,
+        restaurantName: selectedRestaurant?.name,
+        used: false
+      }]);
     }
     setTimeout(() => setShowCoupon(true), 350);
+  };
+
+  const handleUseCouponFromProfile = couponId => {
+    setCoupons(prev => prev.map(c => c.id === couponId ? { ...c, used:true } : c));
+    setTotalPoints(p => p + 100);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3200);
   };
 
   const handleCloseImageModal = () => {
@@ -1435,9 +1691,12 @@ const App = () => {
 
   const handleUseCoupon = () => {
     setShowCoupon(false);
+    setCoupons(prev => {
+      const idx = prev.map(c=>c.used).lastIndexOf(false);
+      return prev.map((c,i) => i===idx ? {...c,used:true} : c);
+    });
     setSelectedDish(null);
-    const newPts = totalPoints + 100;
-    setTotalPoints(newPts);
+    setTotalPoints(p => p + 100);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3200);
   };
@@ -1447,10 +1706,22 @@ const App = () => {
     setSelectedDish(null);
   };
 
+  // Flatten bookmarked dishes across all restaurants for profile
+  const savedDishes = [];
+  restaurantsWithState.forEach(r => {
+    Object.values(r.menu).forEach(dishes => {
+      dishes.forEach(d => {
+        if (bookmarkedDishes.has(d.id)) savedDishes.push({ ...d, restaurantName: r.name });
+      });
+    });
+  });
+
+  const showNavBar = !showImageModal && !showCoupon;
+
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" }}>
 
-      {/* Hidden file input — no capture attribute so user can choose camera OR gallery */}
+      {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -1459,10 +1730,10 @@ const App = () => {
         onChange={handleFileSelected}
       />
 
-      {/* Points badge */}
-      {totalPoints > 0 && (
+      {/* Points badge — above navbar */}
+      {totalPoints > 0 && !showImageModal && navTab === 'explore' && (
         <div style={{
-          position:"fixed", bottom:24, right:16, zIndex:90,
+          position:"fixed", bottom:80, right:16, zIndex:90,
           background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.35)",
           borderRadius:20, padding:"6px 13px",
           display:"flex", alignItems:"center", gap:5,
@@ -1473,22 +1744,38 @@ const App = () => {
         </div>
       )}
 
-      {/* Screens */}
-      {screen === 'discover' && (
-        <DiscoverScreen
-          restaurants={restaurantsWithState}
-          onSelect={handleSelectRestaurant}
-        />
+      {/* Explore tab */}
+      {navTab === 'explore' && (
+        <>
+          {screen === 'discover' && (
+            <DiscoverScreen
+              restaurants={restaurantsWithState}
+              onSelect={handleSelectRestaurant}
+            />
+          )}
+          {screen === 'restaurant' && currentRestaurant && !showImageModal && (
+            <RestaurantScreen
+              restaurant={currentRestaurant}
+              onBack={handleBack}
+              onSelectDish={handleSelectDish}
+            />
+          )}
+        </>
       )}
-      {screen === 'restaurant' && currentRestaurant && !showImageModal && (
-        <RestaurantScreen
-          restaurant={currentRestaurant}
-          onBack={handleBack}
-          onSelectDish={handleSelectDish}
+
+      {/* Profile tab */}
+      {navTab === 'profile' && (
+        <ProfileScreen
+          uploadCount={uploadedDishes.size + 1}
+          coupons={coupons}
+          onUseCoupon={handleUseCouponFromProfile}
+          savedDishes={savedDishes}
+          profileTab={profileTab}
+          setProfileTab={setProfileTab}
         />
       )}
 
-      {/* Dish modal */}
+      {/* Dish modal — shown on top of any tab */}
       {selectedDish && !showCoupon && !showImageModal && (
         <DishModal
           dish={selectedDish}
@@ -1518,6 +1805,11 @@ const App = () => {
           onUse={handleUseCoupon}
           onClose={handleCloseCoupon}
         />
+      )}
+
+      {/* Bottom nav */}
+      {showNavBar && (
+        <BottomNav activeTab={navTab} onTabChange={setNavTab} />
       )}
 
       {/* Points toast */}
