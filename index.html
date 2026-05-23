@@ -1466,6 +1466,66 @@ const BottomNav = ({ activeTab, onTabChange }) => (
 
 /* ═══════════════════════════ PROFILE SCREEN ═══════════════════════════ */
 
+const LEAGUE_STYLE = {
+  'Kulinarisk VIP': {
+    bg:      "radial-gradient(circle at 42% 38%, rgba(255,215,0,0.30) 0%, rgba(212,175,55,0.10) 55%, transparent 100%)",
+    border:  "1.5px solid rgba(255,215,0,0.70)",
+    shadow:  "0 0 28px rgba(255,215,0,0.55), 0 0 60px rgba(255,215,0,0.18)",
+    ring:    "rgba(255,215,0,0.28)",
+    pulse:   true,
+  },
+  'Gull-Elite': {
+    bg:      "radial-gradient(circle at 42% 38%, rgba(212,175,55,0.24) 0%, rgba(212,175,55,0.08) 55%, transparent 100%)",
+    border:  "1.5px solid rgba(212,175,55,0.58)",
+    shadow:  "0 0 20px rgba(212,175,55,0.42), 0 0 42px rgba(212,175,55,0.12)",
+    ring:    "rgba(212,175,55,0.22)",
+    pulse:   true,
+  },
+  'Sølv-Kritiker': {
+    bg:      "radial-gradient(circle at 42% 38%, rgba(192,192,192,0.14) 0%, rgba(192,192,192,0.04) 55%, transparent 100%)",
+    border:  "1px solid rgba(192,192,192,0.30)",
+    shadow:  "none",
+    ring:    "rgba(192,192,192,0.10)",
+    pulse:   false,
+  },
+  'Bronse-Gourmet': {
+    bg:      "radial-gradient(circle at 42% 38%, rgba(205,127,50,0.16) 0%, rgba(205,127,50,0.05) 55%, transparent 100%)",
+    border:  "1px solid rgba(205,127,50,0.30)",
+    shadow:  "none",
+    ring:    "rgba(205,127,50,0.12)",
+    pulse:   false,
+  },
+  'Mat-Aspirant': {
+    bg:      "rgba(255,255,255,0.04)",
+    border:  "1px solid rgba(255,255,255,0.10)",
+    shadow:  "none",
+    ring:    "rgba(255,255,255,0.06)",
+    pulse:   false,
+  },
+};
+
+const LeagueEmblem = ({ league }) => {
+  const s = LEAGUE_STYLE[league.name] || LEAGUE_STYLE['Mat-Aspirant'];
+  return (
+    <div style={{
+      display:"inline-flex", alignItems:"center", justifyContent:"center",
+      width:62, height:62, borderRadius:"50%", flexShrink:0,
+      background: s.bg,
+      border: s.border,
+      boxShadow: s.shadow,
+      animation: s.pulse ? "pulseGold 2.2s ease infinite" : "none",
+      fontSize:28, lineHeight:1, position:"relative"
+    }}>
+      {league.icon}
+      {/* Inner decorative ring */}
+      <div style={{
+        position:"absolute", inset:5, borderRadius:"50%",
+        border:`1px solid ${s.ring}`, pointerEvents:"none"
+      }} />
+    </div>
+  );
+};
+
 const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, profileTab, setProfileTab }) => {
   const league   = getLeague(uploadCount);
   const progress = getLeagueProgress(uploadCount);
@@ -1474,93 +1534,150 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
 
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }} className="anim-fade-in">
+
       {/* Header */}
-      <div style={{
-        padding:"20px 20px 16px",
-        borderBottom:"1px solid rgba(212,175,55,0.1)"
-      }}>
+      <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid rgba(212,175,55,0.08)" }}>
         <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:800, letterSpacing:"0.07em", margin:0 }}>
           MIN PROFIL
         </h1>
-        <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.5 }} />
+        <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.4 }} />
       </div>
 
-      {/* VIP Membership Card */}
+      {/* ── VIP MEMBERSHIP CARD ── */}
       <div style={{ margin:"20px 20px 0" }}>
         <div style={{
-          background:"linear-gradient(135deg, #1a1a1a 0%, #111 100%)",
-          border:"1px solid rgba(212,175,55,0.45)",
-          borderRadius:18, padding:"20px 20px 18px",
-          position:"relative", overflow:"hidden",
-          boxShadow:"0 0 40px rgba(212,175,55,0.08)"
+          background:"linear-gradient(148deg, #1a1a1a 0%, #141414 38%, #0f0f0d 65%, #1F1A10 100%)",
+          border:"1px solid rgba(212,175,55,0.28)",
+          borderRadius:20,
+          boxShadow:"0 12px 50px rgba(0,0,0,0.72), inset 0 1px 0 rgba(212,175,55,0.16), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.06)",
+          overflow:"hidden", position:"relative"
         }}>
-          {/* Gold corner accents */}
-          {[{top:0,left:0,bT:"16px 0 0 0"},{top:0,right:0,bT:"0 16px 0 0"},{bottom:0,left:0,bT:"0 0 0 16px"},{bottom:0,right:0,bT:"0 0 16px 0"}].map((s,i)=>(
-            <div key={i} style={{
-              position:"absolute", width:28, height:28,
-              top:s.top, bottom:s.bottom, left:s.left, right:s.right,
-              border:"2px solid #D4AF37", borderRadius:s.bT,
-              borderRight: s.left===0 ? "none" : "2px solid #D4AF37",
-              borderLeft:  s.right===0 ? "none" : "2px solid #D4AF37",
-              borderBottom:s.top===0 ? "none" : "2px solid #D4AF37",
-              borderTop:   s.bottom===0 ? "none" : "2px solid #D4AF37",
-            }}/>
-          ))}
+          {/* Decorative shimmer top bar */}
+          <div style={{ height:2, background:"linear-gradient(90deg, transparent, rgba(212,175,55,0.6), #F0D060, rgba(212,175,55,0.6), transparent)" }} />
 
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-            <div>
-              <p style={{ color:"#666", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 5px" }}>
-                DISHY VIP MEMBER
-              </p>
-              <h2 style={{ color:"#fff", fontSize:21, fontWeight:700, margin:0 }}>{user?.navn || 'Gjest'}</h2>
-            </div>
-            <span style={{ fontSize:30, lineHeight:1 }}>{league.icon}</span>
-          </div>
+          {/* Subtle noise texture overlay */}
+          <div style={{
+            position:"absolute", inset:0, opacity:0.03,
+            backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            pointerEvents:"none"
+          }} />
 
-          <div style={{ display:"flex", gap:24 }}>
-            <div>
-              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Liga</p>
-              <p style={{ color:league.color, fontSize:14, fontWeight:700, margin:0,
-                ...(league.name==='Kulinarisk VIP' ? {textShadow:"0 0 10px #FFD700"} : {})
-              }}>{league.name}</p>
+          <div style={{ padding:"22px 22px 20px", position:"relative" }}>
+            {/* Top row: label + emblem */}
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
+              <div style={{ flex:1 }}>
+                <p style={{ color:"rgba(212,175,55,0.45)", fontSize:9, letterSpacing:"0.24em", textTransform:"uppercase", margin:"0 0 8px", fontWeight:700 }}>
+                  DISHY · VIP MEMBER
+                </p>
+                <h2 style={{ color:"#fff", fontSize:23, fontWeight:700, margin:"0 0 12px", letterSpacing:"-0.01em" }}>
+                  {user?.navn || 'Gjest'}
+                </h2>
+                {/* Gold chip detail */}
+                <div style={{
+                  width:34, height:24, borderRadius:5,
+                  background:"linear-gradient(135deg, #2a2400 0%, #4a3c00 40%, #3a3000 70%, #2a2400 100%)",
+                  border:"1px solid rgba(212,175,55,0.35)",
+                  boxShadow:"inset 0 1px 0 rgba(212,175,55,0.2)",
+                  display:"flex", flexDirection:"column", alignItems:"stretch",
+                  justifyContent:"center", gap:3, padding:"0 5px", overflow:"hidden"
+                }}>
+                  {[0,1,2].map(i => (
+                    <div key={i} style={{ height:1, background:"rgba(212,175,55,0.22)", borderRadius:1 }} />
+                  ))}
+                </div>
+              </div>
+              <LeagueEmblem league={league} />
             </div>
-            <div>
-              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Dokumentert</p>
-              <p style={{ color:"#D4AF37", fontSize:14, fontWeight:700, margin:0 }}>{uploadCount} {uploadCount===1?'rett':'retter'}</p>
-            </div>
-            <div>
-              <p style={{ color:"#555", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 3px" }}>Kuponger</p>
-              <p style={{ color:"#D4AF37", fontSize:14, fontWeight:700, margin:0 }}>{active.length} aktive</p>
+
+            {/* Divider */}
+            <div style={{ height:1, background:"linear-gradient(90deg, rgba(212,175,55,0.28), rgba(212,175,55,0.06), transparent)", marginBottom:18 }} />
+
+            {/* Stats row */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0 }}>
+              {[
+                {
+                  label:"Liga",
+                  content:(
+                    <span style={{ display:"flex", alignItems:"center", gap:4 }}>
+                      <span style={{ fontSize:13 }}>{league.icon}</span>
+                      <span style={{
+                        color:league.color, fontSize:12, fontWeight:700, lineHeight:1.2,
+                        ...(league.name==='Kulinarisk VIP' ? { textShadow:"0 0 10px #FFD700" } : {})
+                      }}>{league.name}</span>
+                    </span>
+                  )
+                },
+                {
+                  label:"Dokumentert",
+                  content:(
+                    <span style={{ color:"#fff", fontSize:16, fontWeight:800, lineHeight:1.1, letterSpacing:"-0.02em" }}>
+                      {uploadCount}
+                      <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.45)", marginLeft:3 }}>
+                        {uploadCount===1?'rett':'retter'}
+                      </span>
+                    </span>
+                  )
+                },
+                {
+                  label:"Kuponger",
+                  content:(
+                    <span style={{ color: active.length > 0 ? "#D4AF37" : "#555", fontSize:16, fontWeight:800, lineHeight:1.1, letterSpacing:"-0.02em" }}>
+                      {active.length}
+                      <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.35)", marginLeft:3 }}>aktive</span>
+                    </span>
+                  )
+                },
+              ].map(({ label, content }, i) => (
+                <div key={label} style={{
+                  paddingLeft: i > 0 ? 14 : 0,
+                  borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none"
+                }}>
+                  <p style={{ color:"rgba(255,255,255,0.28)", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 6px", fontWeight:600 }}>
+                    {label}
+                  </p>
+                  <div style={{ lineHeight:1.2 }}>{content}</div>
+                </div>
+              ))}
             </div>
           </div>
+          <div style={{ height:1, background:"linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)" }} />
         </div>
       </div>
 
       {/* Progress bar + motivation */}
       <div style={{ margin:"16px 20px 0" }}>
-        <div style={{ height:3, background:"#1a1a1a", borderRadius:2, overflow:"hidden" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
+          <span style={{ color:"rgba(212,175,55,0.6)", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600 }}>
+            Ligatremgang
+          </span>
+          <span style={{ color:"rgba(212,175,55,0.5)", fontSize:10, fontWeight:600 }}>
+            {Math.round(progress)}%
+          </span>
+        </div>
+        <div style={{ height:4, background:"rgba(255,255,255,0.05)", borderRadius:2, overflow:"hidden" }}>
           <div style={{
             height:"100%", width:`${progress}%`,
-            background:"linear-gradient(90deg, #9A7D22, #F0D060)",
-            borderRadius:2, transition:"width 0.7s ease"
+            background:"linear-gradient(90deg, #9A7D22, #F0D060, #D4AF37)",
+            borderRadius:2, transition:"width 0.8s cubic-bezier(0.16,1,0.3,1)",
+            boxShadow:"0 0 8px rgba(212,175,55,0.4)"
           }}/>
         </div>
-        <p style={{ color:"#777", fontSize:12, margin:"10px 0 0", lineHeight:1.5 }}>{motText}</p>
+        <p style={{ color:"#666", fontSize:12, margin:"10px 0 0", lineHeight:1.55 }}>{motText}</p>
       </div>
 
       {/* Tabs */}
       <div style={{ display:"flex", gap:8, margin:"20px 20px 0" }}>
-        {[['coupons','Mine Kuponger'],['saved','Mine Lagrede Retter']].map(([id,label]) => {
-          const active = profileTab === id;
+        {[['coupons','Mine Kuponger'],['saved','Mine Lagrede Retter']].map(([id, label]) => {
+          const isActive = profileTab === id;
           return (
             <button key={id} onClick={() => setProfileTab(id)} style={{
               all:"unset", cursor:"pointer", flex:1, textAlign:"center",
-              padding:"10px 8px", borderRadius:12,
-              background: active ? "rgba(212,175,55,0.12)" : "transparent",
-              border: active ? "1px solid rgba(212,175,55,0.4)" : "1px solid rgba(255,255,255,0.06)",
-              color: active ? "#D4AF37" : "#555",
-              fontSize:12, fontWeight: active ? 700 : 400,
-              transition:"all 0.2s ease"
+              padding:"11px 8px", borderRadius:12,
+              background: isActive ? "rgba(212,175,55,0.1)" : "transparent",
+              border: isActive ? "1px solid rgba(212,175,55,0.35)" : "1px solid rgba(255,255,255,0.05)",
+              color: isActive ? "#D4AF37" : "#444",
+              fontSize:12, fontWeight: isActive ? 700 : 400,
+              letterSpacing:"0.02em", transition:"all 0.2s ease"
             }}>{label}</button>
           );
         })}
@@ -1568,47 +1685,102 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
 
       {/* Tab content */}
       <div style={{ padding:"16px 20px" }}>
+
+        {/* ── KUPONGER ── */}
         {profileTab === 'coupons' && (
           active.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <span style={{ fontSize:36 }}>🎟️</span>
-              <p style={{ color:"#444", fontSize:14, marginTop:14, lineHeight:1.6 }}>
-                Ingen aktive kuponger ennå.<br/>
-                <span style={{ color:"#D4AF37" }}>Last opp bilder for å vinne!</span>
+            <div style={{ textAlign:"center", padding:"52px 0" }}>
+              <div style={{
+                width:64, height:64, borderRadius:16, margin:"0 auto 16px",
+                background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.12)",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:28
+              }}>🎟️</div>
+              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 6px" }}>Ingen aktive kuponger ennå</p>
+              <p style={{ color:"#444", fontSize:13, lineHeight:1.6, margin:0 }}>
+                Last opp bilder av retter for å<br/>
+                <span style={{ color:"#D4AF37" }}>vinne gratis belønninger</span>
               </p>
             </div>
           ) : (
             active.map(c => (
+              /* ── TEAR-TICKET COUPON DESIGN ── */
               <div key={c.id} style={{
-                background:"#141414", border:"1px solid rgba(212,175,55,0.25)",
-                borderRadius:14, padding:"16px", marginBottom:12
+                display:"flex", marginBottom:14, borderRadius:14, overflow:"hidden",
+                boxShadow:"0 4px 24px rgba(0,0,0,0.4)"
               }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-                  <span style={{ fontSize:22 }}>🎁</span>
-                  <div>
-                    <p style={{ color:"#fff", fontSize:14, fontWeight:600, margin:0 }}>Gratis brus / mineralvann</p>
-                    <p style={{ color:"#888", fontSize:12, margin:"3px 0 0" }}>{c.dishName} · {c.restaurantName}</p>
-                  </div>
-                </div>
-                <button onClick={() => onUseCoupon(c.id)} style={{
-                  width:"100%", padding:"12px",
-                  background:"#D4AF37", border:"none", borderRadius:10,
-                  cursor:"pointer", fontSize:13, fontWeight:700, color:"#0D0D0D"
+                {/* Left stub — dashed separator side */}
+                <div style={{
+                  width:56, flexShrink:0,
+                  background:"linear-gradient(160deg, #1c1a10 0%, #141410 100%)",
+                  borderTop:"1px solid rgba(212,175,55,0.3)",
+                  borderBottom:"1px solid rgba(212,175,55,0.3)",
+                  borderLeft:"1px solid rgba(212,175,55,0.3)",
+                  borderRadius:"14px 0 0 14px",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  position:"relative"
                 }}>
-                  Bruk i baren
-                </button>
+                  {/* Dashed right edge */}
+                  <div style={{
+                    position:"absolute", right:-1, top:8, bottom:8,
+                    borderRight:"2px dashed rgba(212,175,55,0.35)"
+                  }} />
+                  {/* Notch circles */}
+                  <div style={{ position:"absolute", top:-7, right:-7, width:14, height:14, borderRadius:"50%", background:"#0D0D0D" }} />
+                  <div style={{ position:"absolute", bottom:-7, right:-7, width:14, height:14, borderRadius:"50%", background:"#0D0D0D" }} />
+                  <span style={{ fontSize:22, transform:"rotate(-90deg)" }}>🎁</span>
+                </div>
+
+                {/* Right body */}
+                <div style={{
+                  flex:1,
+                  background:"linear-gradient(160deg, #1a1a14 0%, #131310 100%)",
+                  borderTop:"1px solid rgba(212,175,55,0.3)",
+                  borderBottom:"1px solid rgba(212,175,55,0.3)",
+                  borderRight:"1px solid rgba(212,175,55,0.3)",
+                  borderRadius:"0 14px 14px 0",
+                  padding:"16px 16px 14px"
+                }}>
+                  <p style={{ color:"rgba(212,175,55,0.5)", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:700 }}>
+                    DISHY REWARD
+                  </p>
+                  <p style={{ color:"#fff", fontSize:14, fontWeight:700, margin:"0 0 3px" }}>
+                    Gratis brus / mineralvann
+                  </p>
+                  <p style={{ color:"#666", fontSize:11, margin:"0 0 14px" }}>
+                    {c.dishName} · {c.restaurantName}
+                  </p>
+                  <button
+                    onClick={() => onUseCoupon(c.id)}
+                    onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+                    style={{
+                      width:"100%", padding:"11px",
+                      background:"#D4AF37",
+                      border:"none", borderRadius:10,
+                      cursor:"pointer", fontSize:13, fontWeight:800, color:"#0D0D0D",
+                      letterSpacing:"0.04em", transition:"transform 0.1s ease, opacity 0.1s ease"
+                    }}
+                  >
+                    Bruk i baren ✦
+                  </button>
+                </div>
               </div>
             ))
           )
         )}
 
+        {/* ── LAGREDE RETTER ── */}
         {profileTab === 'saved' && (
           savedDishes.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <span style={{ fontSize:36 }}>🔖</span>
-              <p style={{ color:"#444", fontSize:14, marginTop:14, lineHeight:1.6 }}>
-                Ingen lagrede retter ennå.<br/>
-                <span style={{ color:"#D4AF37" }}>Bokmerke favorittene dine!</span>
+            <div style={{ textAlign:"center", padding:"52px 20px" }}>
+              <div style={{
+                width:64, height:64, borderRadius:16, margin:"0 auto 16px",
+                background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.12)",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:28
+              }}>🔖</div>
+              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Ingen kulinariske opplevelser lagret ennå</p>
+              <p style={{ color:"#444", fontSize:13, lineHeight:1.65, margin:0 }}>
+                Utforsk menyene i Molde for å planlegge<br/>ditt neste måltid ✨
               </p>
             </div>
           ) : (
@@ -1622,7 +1794,7 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
                 </div>
                 <div style={{ flex:1 }}>
                   <p style={{ color:"#fff", fontSize:14, fontWeight:600, margin:"0 0 3px" }}>{d.name}</p>
-                  <p style={{ color:"#888", fontSize:12, margin:"0 0 3px" }}>{d.restaurantName}</p>
+                  <p style={{ color:"#666", fontSize:12, margin:"0 0 3px" }}>{d.restaurantName}</p>
                   <p style={{ color:"#D4AF37", fontSize:12, fontWeight:700, margin:0 }}>{d.price}</p>
                 </div>
               </div>
