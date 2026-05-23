@@ -1108,7 +1108,8 @@ const DishThumb = ({ src, alt }) => {
 /* ═══════════════════════════ SCREEN 2: RESTAURANT ═══════════════════════════ */
 
 const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const menuCategories = Object.keys(restaurant.menu).filter(c => restaurant.menu[c]?.length > 0);
+  const [category, setCategory] = useState(menuCategories[0] || '');
   const items = restaurant.menu[category] || [];
 
   return (
@@ -1155,7 +1156,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
         borderBottom:"1px solid rgba(212,175,55,0.1)", padding:"12px 0"
       }}>
         <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"0 16px" }}>
-          {CATEGORIES.map(cat => {
+          {menuCategories.map(cat => {
             const active = cat === category;
             return (
               <button key={cat} onClick={() => setCategory(cat)} style={{
