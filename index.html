@@ -52,6 +52,252 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
 
+/* ═══════════════════════════ LANGUAGE ═══════════════════════════ */
+
+const LangContext = React.createContext({ lang:'no', setLang:()=>{} });
+const useLang = () => React.useContext(LangContext);
+
+const TRANSLATIONS = {
+  no: {
+    // Nav
+    nav_explore: "Utforsk", nav_profile: "Profil",
+    // Discover
+    discover_gps: "📍 GPS — Molde sentrum",
+    discover_h1: "Eksklusive menyer", discover_h2: "i nærheten av deg",
+    discover_badge: "✨ Bildemeny tilgjengelig",
+    discover_daily_label: "✦ Dagens Gylne Anbefaling",
+    discover_portions: n => `Kun ${n} porsjoner igjen i dag`,
+    // Restaurant
+    restaurant_back: "Tilbake", restaurant_book: "Bordbestilling",
+    restaurant_documented: "✦ DOKUMENTERT",
+    // Dish modal
+    dish_ingredients: "Ingredienser & allergener",
+    dish_guest_rating: "Gjestevurdering",
+    dish_rated_by: "Vurdert av",
+    dish_guests: n => `${n} gjester`,
+    dish_upload: "Legg til ditt bilde",
+    dish_uploaded_btn: "Bilde allerede lastet opp",
+    dish_ai_note: "AI godkjenner kun skarpe, appetittvekkende matbilder",
+    dish_documented: "Du har dokumentert denne retten",
+    dish_share_toast: "Lenke kopiert! Del denne kulinariske opplevelsen med dine venner ✨",
+    dish_share_text: (n, r) => `${n} hos ${r} — sjekk det ut på Dishy! 🍽️✨`,
+    // Upload modal
+    upload_cancel: "Avbryt", upload_preview: "FORHÅNDSVISNING",
+    upload_retake: "Ta nytt", upload_analyze: "Analyser med AI",
+    upload_ai_note: "Claude AI sjekker bildekvalitet automatisk",
+    upload_analyzing: "AI-analyse pågår…",
+    upload_wait: "Vennligst vent — dette tar 3–5 sekunder",
+    upload_rejected_title: "Ikke godkjent",
+    upload_rejected_hint: "Ta et nytt bilde: hold kameraet stabilt,\nsørg for god belysning og at maten er fri for hindringer.",
+    upload_tips_header: "Tips for godkjent bilde",
+    upload_tips: [
+      ["📷","Hold kameraet stødig i 1–2 sekunder"],
+      ["💡","Sørg for god belysning fra siden"],
+      ["🍽️","Mat skal fylle minst halvparten av bildet"],
+      ["🤚","Unngå fingre og fremmede objekter"],
+    ],
+    upload_retake_btn: "Ta nytt bilde",
+    upload_stages: [
+      "Leser og prosesserer bilde…", "Sjekker skarphet og fokus…",
+      "Analyserer matinnhold…", "Vurderer presentasjon og kvalitet…", "Fullfører AI-validering…",
+    ],
+    // Errors
+    err_too_many: "For mange forespørsler – vent litt og prøv igjen",
+    err_unavailable: "AI-tjenesten er ikke tilgjengelig akkurat nå",
+    err_quality: "Bildet møter ikke kvalitetskravene.",
+    err_generic: s => `Feil (${s})`,
+    // Profile
+    profile_title: "MIN PROFIL",
+    profile_card_label: "DISHY · VIP MEMBER",
+    profile_stat_league: "Liga", profile_stat_documented: "Dokumentert", profile_stat_coupons: "Kuponger",
+    profile_stat_active: n => `${n} aktive`,
+    profile_stat_dish: n => `${n} ${n===1?'rett':'retter'}`,
+    profile_progress: "Ligafremgang",
+    profile_tab_coupons: "Mine Kuponger", profile_tab_saved: "Mine Lagrede Retter",
+    profile_no_coupons_title: "Ingen aktive kuponger ennå",
+    profile_no_coupons_body: ["Last opp bilder av retter for å", "vinne gratis belønninger"],
+    profile_coupon_label: "DISHY REWARD",
+    profile_coupon_reward: "Gratis brus / mineralvann",
+    profile_coupon_use: "Bruk i baren ✦",
+    profile_no_saved_title: "Ingen kulinariske opplevelser lagret ennå",
+    profile_no_saved_body: "Utforsk menyene i Molde for å planlegge\nditt neste måltid ✨",
+    // Motivation
+    mot_vip: "Gullstatus oppnådd. Du sitter på The Chef's Table. ✨",
+    mot_rem: (rem, next) => `${rem} rett${rem===1?'':'er'} til for å rykke opp til ${next}.`,
+    // Coupon modal
+    coupon_title: "Gullstatus oppnådd!",
+    coupon_subtitle: n => `Du var den første til å dokumentere "${n}"`,
+    coupon_benefit_label: "Din fordel",
+    coupon_benefit_drink: "gratis valgfri mineralvann eller brus",
+    coupon_benefit_pre: "Vis denne skjermen i baren for en",
+    coupon_benefit_post: "fra restauranten.",
+    coupon_points: "+100 poeng etter bruk",
+    coupon_total: p => `Totalt: ${p}`,
+    coupon_use_btn: "Bruk kupong",
+    coupon_close: "Lukk — bruk senere",
+    coupon_confirm_title: "Er du sikker?",
+    coupon_confirm_body: "Vis denne bekreftelsen til servitøren.\nKupongen kan kun brukes én gang.",
+    coupon_cancel: "Avbryt", coupon_confirm_btn: "✓ Bekreft bruk",
+    // Points toast
+    toast_earned: "+100 poeng opptjent!", toast_total: p => `Totalt: ${p}`,
+    // Thumb
+    thumb_first: "Bli først!",
+    // Spinner
+    spinner_uploading: "LASTER OPP…",
+    // Onboarding
+    ob_welcome: ["Velkom til din eksklusive", "matopplevelse"],
+    ob_subtitle: "Oppdag restauranter, dokumenter retter,\nog lås opp eksklusive fordeler.",
+    ob_features: [
+      ["📸","Dokumenter retter med AI-godkjenning"],
+      ["🎁","Vinn kuponger for gratis brus"],
+      ["👑","Klatr ligaen fra Mat-Aspirant til Kulinarisk VIP"],
+      ["🔖","Lagre favorittrettene dine"],
+    ],
+    ob_cta: "Opprett min profil →",
+    ob_terms: "Ved å fortsette godtar du våre vilkår og personvernerklæring",
+    ob_form_title: "Fortell oss hvem du er",
+    ob_form_subtitle: "Kun synlig for deg og restaurantene",
+    ob_name_label: "Fullt navn", ob_name_ph: "Ola Nordmann",
+    ob_phone_label: "Telefonnummer", ob_phone_ph: "+47 900 00 000",
+    ob_email_label: "E-postadresse", ob_email_ph: "ola@example.com",
+    ob_saving: "Oppretter profil…", ob_submit: "Kom i gang ✦", ob_back: "← Tilbake",
+    ob_err_name: "Skriv inn ditt navn",
+    ob_err_phone: "Ugyldig telefonnummer",
+    ob_err_email: "Ugyldig e-postadresse",
+    // Taste tags
+    taste: {
+      'Trøffel-drøm':'Trøffel-drøm','Hvitløksrik':'Hvitløksrik','Populær':'Populær',
+      'Havets beste':'Havets beste','Plantebasert':'Plantebasert','Søtt & syndig':'Søtt & syndig',
+      'Luksus-favoritt':'Luksus-favoritt',"Chef's Special":"Chef's Special",
+      'Kremet & rik':'Kremet & rik','Italiensk klassiker':'Italiensk klassiker','Gourmet-favoritt':'Gourmet-favoritt',
+    },
+    // League display names
+    leagues: {
+      'Mat-Aspirant':'Mat-Aspirant','Bronse-Gourmet':'Bronse-Gourmet',
+      'Sølv-Kritiker':'Sølv-Kritiker','Gull-Elite':'Gull-Elite','Kulinarisk VIP':'Kulinarisk VIP',
+    },
+  },
+  en: {
+    // Nav
+    nav_explore: "Explore", nav_profile: "Profile",
+    // Discover
+    discover_gps: "📍 GPS — Molde centre",
+    discover_h1: "Exclusive menus", discover_h2: "near you",
+    discover_badge: "✨ Photo menu available",
+    discover_daily_label: "✦ Today's Golden Pick",
+    discover_portions: n => `Only ${n} portions left today`,
+    // Restaurant
+    restaurant_back: "Back", restaurant_book: "Book a table",
+    restaurant_documented: "✦ DOCUMENTED",
+    // Dish modal
+    dish_ingredients: "Ingredients & allergens",
+    dish_guest_rating: "Guest rating",
+    dish_rated_by: "Rated by",
+    dish_guests: n => `${n} guest${n===1?'':'s'}`,
+    dish_upload: "Add your photo",
+    dish_uploaded_btn: "Photo already uploaded",
+    dish_ai_note: "AI only approves sharp, appetising food photos",
+    dish_documented: "You have documented this dish",
+    dish_share_toast: "Link copied! Share this culinary experience with your friends ✨",
+    dish_share_text: (n, r) => `${n} at ${r} — check it out on Dishy! 🍽️✨`,
+    // Upload modal
+    upload_cancel: "Cancel", upload_preview: "PREVIEW",
+    upload_retake: "Retake", upload_analyze: "Analyse with AI",
+    upload_ai_note: "Claude AI checks photo quality automatically",
+    upload_analyzing: "AI analysis in progress…",
+    upload_wait: "Please wait — this takes 3–5 seconds",
+    upload_rejected_title: "Not approved",
+    upload_rejected_hint: "Take a new photo: hold the camera steady,\nensure good lighting and the food is unobstructed.",
+    upload_tips_header: "Tips for an approved photo",
+    upload_tips: [
+      ["📷","Hold the camera steady for 1–2 seconds"],
+      ["💡","Ensure good side lighting"],
+      ["🍽️","Food should fill at least half the frame"],
+      ["🤚","Avoid fingers and foreign objects"],
+    ],
+    upload_retake_btn: "Retake photo",
+    upload_stages: [
+      "Reading and processing image…", "Checking sharpness and focus…",
+      "Analysing food content…", "Evaluating presentation and quality…", "Completing AI validation…",
+    ],
+    // Errors
+    err_too_many: "Too many requests – wait a moment and try again",
+    err_unavailable: "AI service is not available right now",
+    err_quality: "The photo does not meet quality requirements.",
+    err_generic: s => `Error (${s})`,
+    // Profile
+    profile_title: "MY PROFILE",
+    profile_card_label: "DISHY · VIP MEMBER",
+    profile_stat_league: "League", profile_stat_documented: "Documented", profile_stat_coupons: "Coupons",
+    profile_stat_active: n => `${n} active`,
+    profile_stat_dish: n => `${n} ${n===1?'dish':'dishes'}`,
+    profile_progress: "League progress",
+    profile_tab_coupons: "My Coupons", profile_tab_saved: "My Saved Dishes",
+    profile_no_coupons_title: "No active coupons yet",
+    profile_no_coupons_body: ["Upload photos of dishes to", "win free rewards"],
+    profile_coupon_label: "DISHY REWARD",
+    profile_coupon_reward: "Free soft drink / mineral water",
+    profile_coupon_use: "Redeem at the bar ✦",
+    profile_no_saved_title: "No culinary experiences saved yet",
+    profile_no_saved_body: "Explore menus in Molde to plan\nyour next meal ✨",
+    // Motivation
+    mot_vip: "Gold status achieved. You're at The Chef's Table. ✨",
+    mot_rem: (rem, next) => `${rem} more ${rem===1?'dish':'dishes'} to reach ${next}.`,
+    // Coupon modal
+    coupon_title: "Gold status achieved!",
+    coupon_subtitle: n => `You were the first to document "${n}"`,
+    coupon_benefit_label: "Your reward",
+    coupon_benefit_drink: "free soft drink or mineral water",
+    coupon_benefit_pre: "Show this screen at the bar for a",
+    coupon_benefit_post: "from the restaurant.",
+    coupon_points: "+100 points after use",
+    coupon_total: p => `Total: ${p}`,
+    coupon_use_btn: "Redeem coupon",
+    coupon_close: "Close — use later",
+    coupon_confirm_title: "Are you sure?",
+    coupon_confirm_body: "Show this confirmation to the waiter.\nThe coupon can only be used once.",
+    coupon_cancel: "Cancel", coupon_confirm_btn: "✓ Confirm use",
+    // Points toast
+    toast_earned: "+100 points earned!", toast_total: p => `Total: ${p}`,
+    // Thumb
+    thumb_first: "Be first!",
+    // Spinner
+    spinner_uploading: "UPLOADING…",
+    // Onboarding
+    ob_welcome: ["Welcome to your exclusive", "food experience"],
+    ob_subtitle: "Discover restaurants, document dishes,\nand unlock exclusive benefits.",
+    ob_features: [
+      ["📸","Document dishes with AI approval"],
+      ["🎁","Win coupons for free drinks"],
+      ["👑","Climb from Food Aspirant to Culinary VIP"],
+      ["🔖","Save your favourite dishes"],
+    ],
+    ob_cta: "Create my profile →",
+    ob_terms: "By continuing you accept our terms and privacy policy",
+    ob_form_title: "Tell us who you are",
+    ob_form_subtitle: "Only visible to you and the restaurants",
+    ob_name_label: "Full name", ob_name_ph: "John Smith",
+    ob_phone_label: "Phone number", ob_phone_ph: "+47 900 00 000",
+    ob_email_label: "Email address", ob_email_ph: "john@example.com",
+    ob_saving: "Creating profile…", ob_submit: "Get started ✦", ob_back: "← Back",
+    ob_err_name: "Please enter your name",
+    ob_err_phone: "Invalid phone number",
+    ob_err_email: "Invalid email address",
+    // Taste tags
+    taste: {
+      'Trøffel-drøm':'Truffle Dream','Hvitløksrik':'Garlic-rich','Populær':'Popular',
+      'Havets beste':"Ocean's Finest",'Plantebasert':'Plant-based','Søtt & syndig':'Sweet & Sinful',
+      'Luksus-favoritt':'Luxury Favourite',"Chef's Special":"Chef's Special",
+      'Kremet & rik':'Creamy & Rich','Italiensk klassiker':'Italian Classic','Gourmet-favoritt':'Gourmet Favourite',
+    },
+    // League display names
+    leagues: {
+      'Mat-Aspirant':'Food Aspirant','Bronse-Gourmet':'Bronze Gourmet',
+      'Sølv-Kritiker':'Silver Critic','Gull-Elite':'Gold Elite','Kulinarisk VIP':'Culinary VIP',
+    },
+  },
+};
+
 /* ═══════════════════════════ DATA ═══════════════════════════ */
 
 const RESTAURANTS = [
@@ -511,32 +757,34 @@ const getLeagueProgress = count => {
   if (!l.nextAt) return 100;
   return Math.min(((count - l.min) / (l.nextAt - l.min)) * 100, 100);
 };
-const getMotivationText = count => {
+const getMotivationText = (count, t) => {
   const l = getLeague(count);
-  if (!l.nextAt) return 'Gullstatus oppnådd. Du sitter på The Chef\'s Table. ✨';
+  if (!l.nextAt) return t('mot_vip');
   const rem = l.nextAt - count;
-  const verb = l.min === 0 ? 'rykke opp til' : l.min === 3 ? 'nå' : l.min === 10 ? 'nå den eksklusive' : 'oppnå den ultimate';
-  return `📸 Ta bilde av ${rem} rett${rem !== 1 ? 'er' : ''} til for å ${verb} ${l.nextName}!`;
+  const ldict = t('leagues') || {};
+  const nextDisplay = ldict[l.nextName] || l.nextName;
+  return t('mot_rem')(rem, nextDisplay);
 };
 
 /* ═══════════════════════════ TASTE TAGS ═══════════════════════════ */
 
-const getTasteTags = dish => {
-  const t = (dish.name + ' ' + dish.ingredients).toLowerCase();
-  const tags = [];
-  if (t.includes('trøffel'))                                    tags.push(['🍄','Trøffel-drøm']);
-  if (t.includes('hvitløk'))                                    tags.push(['🧄','Hvitløksrik']);
-  if (t.includes('burger') || t.includes('biff'))               tags.push(['🔥','Populær']);
-  if (t.includes('laks') || t.includes('sjøkreps') || t.includes('langoustine')) tags.push(['🌊','Havets beste']);
-  if (t.includes('vegan') || t.includes('vegetar'))             tags.push(['🌿','Plantebasert']);
-  if (t.includes('sjokolade'))                                  tags.push(['🍫','Søtt & syndig']);
-  if (t.includes('østers') || t.includes('kaviar'))             tags.push(['👑','Luksus-favoritt']);
-  if (t.includes('lam'))                                        tags.push(['🥩',"Chef's Special"]);
-  if (t.includes('krem') || t.includes('fløte'))                tags.push(['🧀','Kremet & rik']);
-  if (t.includes('pizza') || t.includes('pasta'))               tags.push(['🍝','Italiensk klassiker']);
-  if (t.includes('ribs') || t.includes('spareribs'))            tags.push(['🔥','Populær']);
-  if (tags.length === 0) tags.push(['✨','Gourmet-favoritt']);
-  return tags.slice(0, 3);
+const getTasteTags = (dish, lang = 'no') => {
+  const text = (dish.name + ' ' + dish.ingredients).toLowerCase();
+  const raw = [];
+  if (text.includes('trøffel'))                                         raw.push(['🍄','Trøffel-drøm']);
+  if (text.includes('hvitløk'))                                         raw.push(['🧄','Hvitløksrik']);
+  if (text.includes('burger') || text.includes('biff'))                 raw.push(['🔥','Populær']);
+  if (text.includes('laks') || text.includes('sjøkreps') || text.includes('langoustine')) raw.push(['🌊','Havets beste']);
+  if (text.includes('vegan') || text.includes('vegetar'))               raw.push(['🌿','Plantebasert']);
+  if (text.includes('sjokolade'))                                       raw.push(['🍫','Søtt & syndig']);
+  if (text.includes('østers') || text.includes('kaviar'))               raw.push(['👑','Luksus-favoritt']);
+  if (text.includes('lam'))                                             raw.push(['🥩',"Chef's Special"]);
+  if (text.includes('krem') || text.includes('fløte'))                  raw.push(['🧀','Kremet & rik']);
+  if (text.includes('pizza') || text.includes('pasta'))                 raw.push(['🍝','Italiensk klassiker']);
+  if (text.includes('ribs') || text.includes('spareribs'))              raw.push(['🔥','Populær']);
+  if (raw.length === 0) raw.push(['✨','Gourmet-favoritt']);
+  const dict = TRANSLATIONS[lang]?.taste || TRANSLATIONS.no.taste;
+  return raw.slice(0, 3).map(([e, label]) => [e, dict[label] || label]);
 };
 
 /* ═══════════════════════════ DAILY RECOMMENDATION ═══════════════════════════ */
@@ -567,7 +815,7 @@ const resizeImage = (dataUrl, maxPx = 1280) => new Promise(resolve => {
   img.src = dataUrl;
 });
 
-const analyzeImage = async (base64, mime) => {
+const analyzeImage = async (base64, mime, t) => {
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -576,9 +824,9 @@ const analyzeImage = async (base64, mime) => {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    if (res.status === 429) throw new Error('For mange forespørsler – vent litt og prøv igjen');
-    if (res.status === 503) throw new Error('AI-tjenesten er ikke tilgjengelig akkurat nå');
-    throw new Error(err.error || `Feil (${res.status})`);
+    if (res.status === 429) throw new Error(t('err_too_many'));
+    if (res.status === 503) throw new Error(t('err_unavailable'));
+    throw new Error(err.error || t('err_generic')(res.status));
   }
 
   return await res.json();
@@ -656,7 +904,7 @@ const Stars = ({ rating = 5, small = false }) => {
   );
 };
 
-const GoldSpinner = ({ size = 44, label = "LASTER OPP…" }) => (
+const GoldSpinner = ({ size = 44, label }) => (
   <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
     <div className="anim-spin" style={{
       width:size, height:size,
@@ -671,15 +919,13 @@ const GoldSpinner = ({ size = 44, label = "LASTER OPP…" }) => (
 
 /* ═══════════════════════════ IMAGE UPLOAD MODAL ═══════════════════════════ */
 
-const STAGES = [
-  { emoji:"📷", label:"Leser og prosesserer bilde…" },
-  { emoji:"🔬", label:"Sjekker skarphet og fokus…" },
-  { emoji:"🍽️", label:"Analyserer matinnhold…" },
-  { emoji:"✨", label:"Vurderer presentasjon og kvalitet…" },
-  { emoji:"🤖", label:"Fullfører AI-validering…" },
-];
+const STAGE_EMOJIS = ["📷","🔬","🍽️","✨","🤖"];
 
 const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApproved, onClose }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  const stages = t('upload_stages');
+
   const [phase,    setPhase]    = useState('preview');
   const [stageIdx, setStageIdx] = useState(0);
   const [reason,   setReason]   = useState('');
@@ -690,19 +936,19 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
 
     let idx = 0;
     const timer = setInterval(() => {
-      idx = Math.min(idx + 1, STAGES.length - 1);
+      idx = Math.min(idx + 1, stages.length - 1);
       setStageIdx(idx);
     }, 750);
 
     try {
-      const result = await analyzeImage(imageData.base64, imageData.mime);
+      const result = await analyzeImage(imageData.base64, imageData.mime, t);
       clearInterval(timer);
-      setStageIdx(STAGES.length - 1);
+      setStageIdx(stages.length - 1);
 
       if (result.godkjent) {
         setTimeout(onApproved, 900);
       } else {
-        setReason(result.grunn || 'Bildet møter ikke kvalitetskravene.');
+        setReason(result.grunn || t('err_quality'));
         setTimeout(() => setPhase('rejected'), 400);
       }
     } catch (err) {
@@ -726,10 +972,10 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
           }}>
             <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
               <IconClose />
-              <span style={{ color:"#666", fontSize:13 }}>Avbryt</span>
+              <span style={{ color:"#666", fontSize:13 }}>{t('upload_cancel')}</span>
             </button>
             <span style={{ color:"#D4AF37", fontSize:13, fontWeight:700, letterSpacing:"0.08em" }}>
-              FORHÅNDSVISNING
+              {t('upload_preview')}
             </span>
             <button
               onClick={onRetake}
@@ -739,7 +985,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
                 color:"#D4AF37", fontSize:12, fontWeight:600
               }}
             >
-              Ta nytt
+              {t('upload_retake')}
             </button>
           </div>
 
@@ -796,10 +1042,10 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
               }}
             >
               <span style={{ fontSize:18 }}>🔍</span>
-              Analyser med AI
+              {t('upload_analyze')}
             </button>
             <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"10px 0 0" }}>
-              Claude AI sjekker bildekvalitet automatisk
+              {t('upload_ai_note')}
             </p>
           </div>
         </div>
@@ -838,7 +1084,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
                 position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
                 fontSize:26
               }}>
-                {STAGES[stageIdx].emoji}
+                {STAGE_EMOJIS[stageIdx]}
               </div>
             </div>
 
@@ -848,10 +1094,10 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
               className="anim-stage-fade"
               style={{ color:"#D4AF37", fontSize:15, fontWeight:600, textAlign:"center", margin:"0 0 8px", letterSpacing:"0.03em" }}
             >
-              {STAGES[stageIdx].label}
+              {stages[stageIdx]}
             </p>
             <p style={{ color:"#444", fontSize:12, textAlign:"center", margin:"0 0 40px" }}>
-              AI-analyse pågår…
+              {t('upload_analyzing')}
             </p>
 
             {/* Stage dots */}
@@ -870,7 +1116,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
           {/* Bottom label */}
           <div style={{ position:"relative", zIndex:3, padding:"0 24px 48px", textAlign:"center" }}>
             <p style={{ color:"#2a2a2a", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-              Vennligst vent — dette tar 3–5 sekunder
+              {t('upload_wait')}
             </p>
           </div>
         </div>
@@ -903,14 +1149,13 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
             </div>
 
             <h3 style={{ color:"#fff", fontSize:22, fontWeight:700, textAlign:"center", margin:"0 0 8px" }}>
-              Ikke godkjent
+              {t('upload_rejected_title')}
             </h3>
             <p style={{ color:"#D4AF37", fontSize:14, textAlign:"center", lineHeight:1.55, margin:"0 0 8px", fontWeight:600 }}>
               {reason}
             </p>
             <p style={{ color:"#555", fontSize:13, textAlign:"center", lineHeight:1.55, margin:"0 0 32px" }}>
-              Ta et nytt bilde: hold kameraet stabilt,<br />
-              sørg for god belysning og at maten er fri for hindringer.
+              {t('upload_rejected_hint').split('\n').map((line, i) => <span key={i}>{line}{i===0&&<br/>}</span>)}
             </p>
 
             {/* Tips */}
@@ -919,16 +1164,11 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
               borderRadius:12, padding:"14px 16px", marginBottom:28
             }}>
               <p style={{ color:"#888", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 10px", fontWeight:600 }}>
-                Tips for godkjent bilde
+                {t('upload_tips_header')}
               </p>
-              {[
-                ["📷","Hold kameraet stødig i 1–2 sekunder"],
-                ["💡","Sørg for god belysning fra siden"],
-                ["🍽️","Mat skal fylle minst halvparten av bildet"],
-                ["🤚","Unngå fingre og fremmede objekter"],
-              ].map(([e, t]) => (
-                <p key={t} style={{ color:"#666", fontSize:13, margin:"0 0 5px", display:"flex", gap:8 }}>
-                  <span>{e}</span><span>{t}</span>
+              {t('upload_tips').map(([e, tip]) => (
+                <p key={tip} style={{ color:"#666", fontSize:13, margin:"0 0 5px", display:"flex", gap:8 }}>
+                  <span>{e}</span><span>{tip}</span>
                 </p>
               ))}
             </div>
@@ -945,7 +1185,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
                 }}
               >
                 <IconRetry />
-                Ta nytt bilde
+                {t('upload_retake_btn')}
               </button>
               <button
                 onClick={onClose}
@@ -956,7 +1196,7 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
                   fontSize:13, color:"#555"
                 }}
               >
-                Avbryt
+                {t('upload_cancel')}
               </button>
             </div>
           </div>
@@ -968,7 +1208,29 @@ const ImageUploadModal = ({ dish, restaurantName, imageData, onRetake, onApprove
 
 /* ═══════════════════════════ SCREEN 1: DISCOVER ═══════════════════════════ */
 
-const DiscoverScreen = ({ restaurants, onSelect }) => (
+const LangToggle = () => {
+  const { lang, setLang } = useLang();
+  return (
+    <button
+      onClick={() => setLang(lang === 'no' ? 'en' : 'no')}
+      style={{
+        background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)",
+        borderRadius:20, padding:"6px 11px", cursor:"pointer",
+        display:"flex", alignItems:"center", gap:4
+      }}
+    >
+      <span style={{ fontSize:14 }}>{lang === 'no' ? '🇳🇴' : '🇬🇧'}</span>
+      <span style={{ color:"#D4AF37", fontSize:11, fontWeight:700, letterSpacing:"0.06em" }}>
+        {lang === 'no' ? 'NO' : 'EN'}
+      </span>
+    </button>
+  );
+};
+
+const DiscoverScreen = ({ restaurants, onSelect }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  return (
   <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }}>
     {/* Header */}
     <div style={{
@@ -984,19 +1246,22 @@ const DiscoverScreen = ({ restaurants, onSelect }) => (
         </h1>
         <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.5 }} />
       </div>
-      <button style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}>
-        <IconSearch />
-      </button>
+      <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+        <LangToggle />
+        <button style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"7px 9px", display:"flex", alignItems:"center" }}>
+          <IconSearch />
+        </button>
+      </div>
     </div>
 
     {/* Tagline */}
     <div style={{ padding:"28px 20px 16px" }}>
       <p style={{ color:"#555", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>
-        📍 GPS — Molde sentrum
+        {t('discover_gps')}
       </p>
       <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, lineHeight:1.25, margin:0 }}>
-        Eksklusive menyer<br />
-        <span style={{ color:"#D4AF37" }}>i nærheten av deg</span>
+        {t('discover_h1')}<br />
+        <span style={{ color:"#D4AF37" }}>{t('discover_h2')}</span>
       </h2>
     </div>
 
@@ -1017,14 +1282,16 @@ const DiscoverScreen = ({ restaurants, onSelect }) => (
           </div>
           <div style={{ flex:1 }}>
             <p style={{ color:"#D4AF37", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:700 }}>
-              ✦ Dagens Gylne Anbefaling
+              {t('discover_daily_label')}
             </p>
             <p style={{ color:"#fff", fontSize:15, fontWeight:700, margin:"0 0 2px" }}>{DAILY_REC.name}</p>
             <p style={{ color:"#888", fontSize:12, margin:"0 0 6px" }}>{DAILY_REC.restaurantName}</p>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
               <span style={{ color:"#D4AF37", fontSize:14, fontWeight:800 }}>{DAILY_REC.price}</span>
               <span style={{ color:"#777", fontSize:11 }}>
-                Kun <span style={{ color:"#E8643A", fontWeight:800, fontSize:13 }}>{DAILY_REC.count}</span> porsjoner igjen i dag
+                {lang === 'no' ? 'Kun ' : 'Only '}
+                <span style={{ color:"#E8643A", fontWeight:800, fontSize:13 }}>{DAILY_REC.count}</span>
+                {lang === 'no' ? ' porsjoner igjen i dag' : ' portions left today'}
               </span>
             </div>
           </div>
@@ -1060,7 +1327,7 @@ const DiscoverScreen = ({ restaurants, onSelect }) => (
               background:"rgba(212,175,55,0.16)", border:"1px solid rgba(212,175,55,0.45)",
               borderRadius:20, padding:"4px 10px", backdropFilter:"blur(6px)"
             }}>
-              <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600 }}>✨ Bildemeny tilgjengelig</span>
+              <span style={{ color:"#D4AF37", fontSize:11, fontWeight:600 }}>{t('discover_badge')}</span>
             </div>
 
             <div style={{ position:"absolute", bottom:14, left:16, right:16 }}>
@@ -1078,11 +1345,14 @@ const DiscoverScreen = ({ restaurants, onSelect }) => (
       ))}
     </div>
   </div>
-);
+  );
+};
 
 /* ═══════════════════════════ DISH THUMB ═══════════════════════════ */
 
 const DishThumb = ({ src, alt }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
   const [err, setErr] = useState(false);
   if (!src || err) {
     return (
@@ -1098,7 +1368,7 @@ const DishThumb = ({ src, alt }) => {
         <span style={{
           color:"#D4AF37", fontSize:9, fontWeight:700,
           letterSpacing:"0.08em", textTransform:"uppercase"
-        }}>Bli først!</span>
+        }}>{t('thumb_first')}</span>
       </div>
     );
   }
@@ -1115,6 +1385,8 @@ const DishThumb = ({ src, alt }) => {
 /* ═══════════════════════════ SCREEN 2: RESTAURANT ═══════════════════════════ */
 
 const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
   const menuCategories = Object.keys(restaurant.menu).filter(c => restaurant.menu[c]?.length > 0);
   const [category, setCategory] = useState(menuCategories[0] || '');
   const items = restaurant.menu[category] || [];
@@ -1134,7 +1406,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
           display:"flex", alignItems:"center", gap:5, backdropFilter:"blur(8px)", cursor:"pointer"
         }}>
           <IconBack />
-          <span style={{ color:"#D4AF37", fontSize:13, fontWeight:600 }}>Tilbake</span>
+          <span style={{ color:"#D4AF37", fontSize:13, fontWeight:600 }}>{t('restaurant_back')}</span>
         </button>
 
         <button style={{
@@ -1143,7 +1415,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
           display:"flex", alignItems:"center", gap:6, border:"none", cursor:"pointer"
         }}>
           <IconCalendar />
-          <span style={{ color:"#0D0D0D", fontSize:12, fontWeight:700, letterSpacing:"0.05em" }}>Bordbestilling</span>
+          <span style={{ color:"#0D0D0D", fontSize:12, fontWeight:700, letterSpacing:"0.05em" }}>{t('restaurant_book')}</span>
         </button>
 
         <div style={{ position:"absolute", bottom:16, left:20, right:20 }}>
@@ -1207,7 +1479,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
                   <span style={{ color:"#444", fontSize:11 }}>({dish.reviews})</span>
                 </div>
                 {dish.uploaded && (
-                  <span style={{ color:"#D4AF37", fontSize:10, letterSpacing:"0.06em", fontWeight:700 }}>✦ DOKUMENTERT</span>
+                  <span style={{ color:"#D4AF37", fontSize:10, letterSpacing:"0.06em", fontWeight:700 }}>{t('restaurant_documented')}</span>
                 )}
               </div>
               <span style={{ color:"#D4AF37", fontSize:15, fontWeight:700, flexShrink:0 }}>{dish.price}</span>
@@ -1239,12 +1511,14 @@ const HeroImage = ({ src, alt }) => {
 /* ═══════════════════════════ DISH MODAL ═══════════════════════════ */
 
 const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
   const [shareToast,  setShareToast]  = useState(false);
   const [bookmarked,  setBookmarked]  = useState(false);
-  const tasteTags = getTasteTags(dish);
+  const tasteTags = getTasteTags(dish, lang);
 
   const handleShare = async () => {
-    const text = `${dish.name} hos ${restaurantName} — sjekk det ut på Dishy! 🍽️✨`;
+    const text = t('dish_share_text')(dish.name, restaurantName);
     try {
       if (navigator.share) await navigator.share({ title: dish.name, text });
       else await navigator.clipboard.writeText(text);
@@ -1271,7 +1545,7 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
         whiteSpace:"nowrap", boxShadow:"0 4px 30px rgba(212,175,55,0.3)"
       }}>
         <span style={{ color:"#D4AF37" }}>✦</span>
-        <span style={{ color:"#fff", fontSize:13, fontWeight:600 }}>Lenke kopiert! Del denne kulinariske opplevelsen med dine venner ✨</span>
+        <span style={{ color:"#fff", fontSize:13, fontWeight:600 }}>{t('dish_share_toast')}</span>
       </div>
     )}
 
@@ -1360,7 +1634,7 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
         <div style={{ height:1, background:"linear-gradient(90deg, #D4AF37, transparent)", opacity:0.35, marginBottom:16 }} />
 
         <p style={{ color:"#444", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 6px", fontWeight:600 }}>
-          Ingredienser & allergener
+          {t('dish_ingredients')}
         </p>
         <p style={{ color:"#bbb", fontSize:14, lineHeight:1.65, margin:"0 0 20px" }}>
           {dish.ingredients}
@@ -1374,7 +1648,7 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
         }}>
           <div>
             <p style={{ color:"#444", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:600 }}>
-              Gjestevurdering
+              {t('dish_guest_rating')}
             </p>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <span style={{ color:"#D4AF37", fontSize:18 }}><Stars rating={dish.rating} /></span>
@@ -1382,8 +1656,8 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
             </div>
           </div>
           <p style={{ color:"#666", fontSize:12, margin:0, textAlign:"right" }}>
-            Vurdert av<br />
-            <span style={{ color:"#fff", fontWeight:700 }}>{dish.reviews} gjester</span>
+            {t('dish_rated_by')}<br />
+            <span style={{ color:"#fff", fontWeight:700 }}>{t('dish_guests')(dish.reviews)}</span>
           </p>
         </div>
 
@@ -1394,7 +1668,7 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
             display:"flex", alignItems:"center", gap:10
           }}>
             <span style={{ fontSize:18 }}>✦</span>
-            <p style={{ color:"#D4AF37", fontSize:13, margin:0, fontWeight:600 }}>Du har dokumentert denne retten</p>
+            <p style={{ color:"#D4AF37", fontSize:13, margin:0, fontWeight:600 }}>{t('dish_documented')}</p>
           </div>
         )}
       </div>
@@ -1418,12 +1692,12 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
             color: dish.uploaded ? "#D4AF37" : "#0D0D0D",
             fontSize:15, fontWeight:700, letterSpacing:"0.04em"
           }}>
-            {dish.uploaded ? "Bilde allerede lastet opp" : "Legg til ditt bilde"}
+            {dish.uploaded ? t('dish_uploaded_btn') : t('dish_upload')}
           </span>
         </button>
         {!dish.uploaded && (
           <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"9px 0 0" }}>
-            AI godkjenner kun skarpe, appetittvekkende matbilder
+            {t('dish_ai_note')}
           </p>
         )}
       </div>
@@ -1434,7 +1708,10 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
 
 /* ═══════════════════════════ BOTTOM NAV ═══════════════════════════ */
 
-const BottomNav = ({ activeTab, onTabChange }) => (
+const BottomNav = ({ activeTab, onTabChange }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  return (
   <div style={{
     position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
     width:"100%", maxWidth:430, zIndex:200,
@@ -1443,9 +1720,9 @@ const BottomNav = ({ activeTab, onTabChange }) => (
     display:"flex"
   }}>
     {[
-      { id:"explore", label:"Utforsk", Icon: IconCompass },
-      { id:"profile", label:"Profil",  Icon: IconUser },
-    ].map(({ id, label, Icon }) => {
+      { id:"explore", labelKey:"nav_explore", Icon: IconCompass },
+      { id:"profile", labelKey:"nav_profile",  Icon: IconUser },
+    ].map(({ id, labelKey, Icon }) => {
       const active = activeTab === id;
       return (
         <button key={id} onClick={() => onTabChange(id)} style={{
@@ -1457,12 +1734,13 @@ const BottomNav = ({ activeTab, onTabChange }) => (
           <span style={{
             fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase",
             color: active ? "#D4AF37" : "#555", fontWeight: active ? 700 : 400
-          }}>{label}</span>
+          }}>{t(labelKey)}</span>
         </button>
       );
     })}
   </div>
-);
+  );
+};
 
 /* ═══════════════════════════ PROFILE SCREEN ═══════════════════════════ */
 
@@ -1527,20 +1805,26 @@ const LeagueEmblem = ({ league }) => {
 };
 
 const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, profileTab, setProfileTab }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
   const league   = getLeague(uploadCount);
   const progress = getLeagueProgress(uploadCount);
-  const motText  = getMotivationText(uploadCount);
+  const motText  = getMotivationText(uploadCount, t);
   const active   = coupons.filter(c => !c.used);
+  const leagueName = (t('leagues') || {})[league.name] || league.name;
 
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }} className="anim-fade-in">
 
       {/* Header */}
-      <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid rgba(212,175,55,0.08)" }}>
-        <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:800, letterSpacing:"0.07em", margin:0 }}>
-          MIN PROFIL
-        </h1>
-        <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.4 }} />
+      <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid rgba(212,175,55,0.08)", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+        <div>
+          <h1 className="gold-text-gradient" style={{ fontSize:22, fontWeight:800, letterSpacing:"0.07em", margin:0 }}>
+            {t('profile_title')}
+          </h1>
+          <div style={{ width:28, height:1, background:"#D4AF37", marginTop:4, opacity:0.4 }} />
+        </div>
+        <LangToggle />
       </div>
 
       {/* ── VIP MEMBERSHIP CARD ── */}
@@ -1567,7 +1851,7 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
               <div style={{ flex:1 }}>
                 <p style={{ color:"rgba(212,175,55,0.45)", fontSize:9, letterSpacing:"0.24em", textTransform:"uppercase", margin:"0 0 8px", fontWeight:700 }}>
-                  DISHY · VIP MEMBER
+                  {t('profile_card_label')}
                 </p>
                 <h2 style={{ color:"#fff", fontSize:23, fontWeight:700, margin:"0 0 12px", letterSpacing:"-0.01em" }}>
                   {user?.navn || 'Gjest'}
@@ -1596,34 +1880,36 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0 }}>
               {[
                 {
-                  label:"Liga",
+                  label: t('profile_stat_league'),
                   content:(
                     <span style={{ display:"flex", alignItems:"center", gap:4 }}>
                       <span style={{ fontSize:13 }}>{league.icon}</span>
                       <span style={{
                         color:league.color, fontSize:12, fontWeight:700, lineHeight:1.2,
                         ...(league.name==='Kulinarisk VIP' ? { textShadow:"0 0 10px #FFD700" } : {})
-                      }}>{league.name}</span>
+                      }}>{leagueName}</span>
                     </span>
                   )
                 },
                 {
-                  label:"Dokumentert",
+                  label: t('profile_stat_documented'),
                   content:(
                     <span style={{ color:"#fff", fontSize:16, fontWeight:800, lineHeight:1.1, letterSpacing:"-0.02em" }}>
                       {uploadCount}
                       <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.45)", marginLeft:3 }}>
-                        {uploadCount===1?'rett':'retter'}
+                        {t('profile_stat_dish')(uploadCount).replace(/^\d+\s*/, '')}
                       </span>
                     </span>
                   )
                 },
                 {
-                  label:"Kuponger",
+                  label: t('profile_stat_coupons'),
                   content:(
                     <span style={{ color: active.length > 0 ? "#D4AF37" : "#555", fontSize:16, fontWeight:800, lineHeight:1.1, letterSpacing:"-0.02em" }}>
                       {active.length}
-                      <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.35)", marginLeft:3 }}>aktive</span>
+                      <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.35)", marginLeft:3 }}>
+                        {t('profile_stat_active')(active.length).replace(/^\d+\s*/, '')}
+                      </span>
                     </span>
                   )
                 },
@@ -1648,7 +1934,7 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
       <div style={{ margin:"16px 20px 0" }}>
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
           <span style={{ color:"rgba(212,175,55,0.6)", fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600 }}>
-            Ligatremgang
+            {t('profile_progress')}
           </span>
           <span style={{ color:"rgba(212,175,55,0.5)", fontSize:10, fontWeight:600 }}>
             {Math.round(progress)}%
@@ -1667,7 +1953,7 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
 
       {/* Tabs */}
       <div style={{ display:"flex", gap:8, margin:"20px 20px 0" }}>
-        {[['coupons','Mine Kuponger'],['saved','Mine Lagrede Retter']].map(([id, label]) => {
+        {[['coupons', t('profile_tab_coupons')],['saved', t('profile_tab_saved')]].map(([id, label]) => {
           const isActive = profileTab === id;
           return (
             <button key={id} onClick={() => setProfileTab(id)} style={{
@@ -1695,10 +1981,10 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
                 background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.12)",
                 display:"flex", alignItems:"center", justifyContent:"center", fontSize:28
               }}>🎟️</div>
-              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 6px" }}>Ingen aktive kuponger ennå</p>
+              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 6px" }}>{t('profile_no_coupons_title')}</p>
               <p style={{ color:"#444", fontSize:13, lineHeight:1.6, margin:0 }}>
-                Last opp bilder av retter for å<br/>
-                <span style={{ color:"#D4AF37" }}>vinne gratis belønninger</span>
+                {t('profile_no_coupons_body')[0]}<br/>
+                <span style={{ color:"#D4AF37" }}>{t('profile_no_coupons_body')[1]}</span>
               </p>
             </div>
           ) : (
@@ -1741,10 +2027,10 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
                   padding:"16px 16px 14px"
                 }}>
                   <p style={{ color:"rgba(212,175,55,0.5)", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 4px", fontWeight:700 }}>
-                    DISHY REWARD
+                    {t('profile_coupon_label')}
                   </p>
                   <p style={{ color:"#fff", fontSize:14, fontWeight:700, margin:"0 0 3px" }}>
-                    Gratis brus / mineralvann
+                    {t('profile_coupon_reward')}
                   </p>
                   <p style={{ color:"#666", fontSize:11, margin:"0 0 14px" }}>
                     {c.dishName} · {c.restaurantName}
@@ -1761,7 +2047,7 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
                       letterSpacing:"0.04em", transition:"transform 0.1s ease, opacity 0.1s ease"
                     }}
                   >
-                    Bruk i baren ✦
+                    {t('profile_coupon_use')}
                   </button>
                 </div>
               </div>
@@ -1778,9 +2064,9 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
                 background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.12)",
                 display:"flex", alignItems:"center", justifyContent:"center", fontSize:28
               }}>🔖</div>
-              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Ingen kulinariske opplevelser lagret ennå</p>
+              <p style={{ color:"#888", fontSize:14, fontWeight:600, margin:"0 0 8px" }}>{t('profile_no_saved_title')}</p>
               <p style={{ color:"#444", fontSize:13, lineHeight:1.65, margin:0 }}>
-                Utforsk menyene i Molde for å planlegge<br/>ditt neste måltid ✨
+                {t('profile_no_saved_body').split('\n').map((line,i) => <span key={i}>{line}{i===0&&<br/>}</span>)}
               </p>
             </div>
           ) : (
@@ -1809,6 +2095,8 @@ const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, p
 /* ═══════════════════════════ COUPON MODAL ═══════════════════════════ */
 
 const CouponModal = ({ dish, points, onUse, onClose }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
@@ -1839,11 +2127,10 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
             fontSize:22, fontWeight:900, textAlign:"center",
             letterSpacing:"0.08em", margin:"0 0 8px", textTransform:"uppercase"
           }}>
-            Gullstatus oppnådd!
+            {t('coupon_title')}
           </h2>
           <p style={{ color:"#777", fontSize:12, textAlign:"center", margin:"0 0 20px", lineHeight:1.6 }}>
-            Du var den første til å dokumentere<br />
-            <span style={{ color:"#fff", fontWeight:600 }}>"{dish?.name}"</span>
+            {t('coupon_subtitle')(dish?.name)}
           </p>
 
           <div style={{ margin:"0 auto 20px", width:"75%", height:1, background:"linear-gradient(90deg,transparent,#D4AF37,transparent)", opacity:0.45 }} />
@@ -1852,11 +2139,11 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
             background:"rgba(212,175,55,0.06)", border:"1px dashed rgba(212,175,55,0.4)",
             borderRadius:14, padding:"16px", marginBottom:20, textAlign:"center"
           }}>
-            <p style={{ color:"#666", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 8px" }}>Din fordel</p>
+            <p style={{ color:"#666", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 8px" }}>{t('coupon_benefit_label')}</p>
             <p style={{ color:"#fff", fontSize:15, fontWeight:600, lineHeight:1.55, margin:0 }}>
-              Vis denne skjermen i baren for en<br />
-              <span style={{ color:"#D4AF37", fontWeight:800 }}>gratis valgfri mineralvann eller brus</span><br />
-              fra restauranten.
+              {t('coupon_benefit_pre')}<br />
+              <span style={{ color:"#D4AF37", fontWeight:800 }}>{t('coupon_benefit_drink')}</span><br />
+              {t('coupon_benefit_post')}
             </p>
           </div>
 
@@ -1866,9 +2153,9 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
             marginBottom:24, border:"1px solid rgba(212,175,55,0.12)"
           }}>
             <span style={{ color:"#D4AF37", fontSize:16 }}>✦</span>
-            <span style={{ color:"#D4AF37", fontSize:13, fontWeight:700 }}>+100 poeng etter bruk</span>
+            <span style={{ color:"#D4AF37", fontSize:13, fontWeight:700 }}>{t('coupon_points')}</span>
             <span style={{ color:"#333", fontSize:12 }}>·</span>
-            <span style={{ color:"#666", fontSize:12 }}>Totalt: {points + 100}</span>
+            <span style={{ color:"#666", fontSize:12 }}>{t('coupon_total')(points + 100)}</span>
           </div>
 
           {!showConfirm ? (
@@ -1878,14 +2165,14 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
                 background:"#D4AF37", border:"none", borderRadius:13, cursor:"pointer",
                 fontSize:14, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.05em"
               }}>
-                Bruk kupong
+                {t('coupon_use_btn')}
               </button>
               <button onClick={onClose} style={{
                 width:"100%", padding:"12px",
                 background:"transparent", border:"1px solid #2a2a2a", borderRadius:13, cursor:"pointer",
                 fontSize:13, color:"#555"
               }}>
-                Lukk — bruk senere
+                {t('coupon_close')}
               </button>
             </div>
           ) : (
@@ -1894,11 +2181,10 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
               borderRadius:14, padding:"16px"
             }}>
               <p style={{ color:"#fff", fontSize:14, textAlign:"center", margin:"0 0 8px", fontWeight:700 }}>
-                Er du sikker?
+                {t('coupon_confirm_title')}
               </p>
               <p style={{ color:"#666", fontSize:12, textAlign:"center", margin:"0 0 16px", lineHeight:1.55 }}>
-                Vis denne bekreftelsen til servitøren.<br />
-                Kupongen kan kun brukes én gang.
+                {t('coupon_confirm_body').split('\n').map((line,i) => <span key={i}>{line}{i===0&&<br/>}</span>)}
               </p>
               <div style={{ display:"flex", gap:8 }}>
                 <button onClick={() => setShowConfirm(false)} style={{
@@ -1906,14 +2192,14 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
                   background:"transparent", border:"1px solid #333", borderRadius:11, cursor:"pointer",
                   fontSize:13, color:"#666"
                 }}>
-                  Avbryt
+                  {t('coupon_cancel')}
                 </button>
                 <button onClick={onUse} style={{
                   flex:2, padding:"12px",
                   background:"#D4AF37", border:"none", borderRadius:11, cursor:"pointer",
                   fontSize:13, fontWeight:800, color:"#0D0D0D"
                 }}>
-                  ✓ Bekreft bruk
+                  {t('coupon_confirm_btn')}
                 </button>
               </div>
             </div>
@@ -1927,7 +2213,10 @@ const CouponModal = ({ dish, points, onUse, onClose }) => {
 
 /* ═══════════════════════════ POINTS TOAST ═══════════════════════════ */
 
-const PointsToast = ({ points, visible }) => (
+const PointsToast = ({ points, visible }) => {
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  return (
   <div style={{
     position:"fixed", top:20, left:"50%", transform:"translateX(-50%)",
     zIndex:600,
@@ -1940,15 +2229,18 @@ const PointsToast = ({ points, visible }) => (
     boxShadow:"0 4px 30px rgba(212,175,55,0.3)"
   }}>
     <span style={{ color:"#D4AF37", fontSize:15 }}>✦</span>
-    <span style={{ color:"#fff", fontSize:13, fontWeight:700 }}>+100 poeng opptjent!</span>
-    <span style={{ color:"#666", fontSize:12 }}>Totalt: {points}</span>
+    <span style={{ color:"#fff", fontSize:13, fontWeight:700 }}>{t('toast_earned')}</span>
+    <span style={{ color:"#666", fontSize:12 }}>{t('toast_total')(points)}</span>
   </div>
-);
+  );
+};
 
 /* ═══════════════════════════ ONBOARDING ═══════════════════════════ */
 
 const OnboardingScreen = ({ onComplete }) => {
-  const [step,   setStep]   = useState(1); // 1 = velkommen, 2 = skjema
+  const { lang } = useLang();
+  const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  const [step,   setStep]   = useState(1);
   const [navn,   setNavn]   = useState('');
   const [tlf,    setTlf]    = useState('');
   const [epost,  setEpost]  = useState('');
@@ -1957,9 +2249,9 @@ const OnboardingScreen = ({ onComplete }) => {
 
   const validate = () => {
     const e = {};
-    if (!navn.trim())                          e.navn  = 'Skriv inn ditt navn';
-    if (!/^\+?[\d\s]{8,}$/.test(tlf.trim()))  e.tlf   = 'Ugyldig telefonnummer';
-    if (!/\S+@\S+\.\S+/.test(epost.trim()))   e.epost = 'Ugyldig e-postadresse';
+    if (!navn.trim())                          e.navn  = t('ob_err_name');
+    if (!/^\+?[\d\s]{8,}$/.test(tlf.trim()))  e.tlf   = t('ob_err_phone');
+    if (!/\S+@\S+\.\S+/.test(epost.trim()))   e.epost = t('ob_err_email');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -1987,6 +2279,9 @@ const OnboardingScreen = ({ onComplete }) => {
 
       {/* Decorative gold top bar */}
       <div style={{ height:3, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
+      <div style={{ display:"flex", justifyContent:"flex-end", padding:"12px 20px 0" }}>
+        <LangToggle />
+      </div>
 
       {/* Hero section */}
       <div style={{ padding:"48px 28px 32px", textAlign:"center" }}>
@@ -1996,10 +2291,10 @@ const OnboardingScreen = ({ onComplete }) => {
         </h1>
         <div style={{ width:40, height:1, background:"#D4AF37", margin:"0 auto 18px", opacity:0.6 }} />
         <p style={{ color:"#ccc", fontSize:16, fontWeight:600, margin:"0 0 8px" }}>
-          Velkom til din eksklusive<br/>matopplevelse
+          {t('ob_welcome')[0]}<br/>{t('ob_welcome')[1]}
         </p>
         <p style={{ color:"#555", fontSize:13, lineHeight:1.6, margin:0 }}>
-          Oppdag restauranter, dokumenter retter,<br/>og lås opp eksklusive fordeler.
+          {t('ob_subtitle').split('\n').map((line,i) => <span key={i}>{line}{i===0&&<br/>}</span>)}
         </p>
       </div>
 
@@ -2007,12 +2302,7 @@ const OnboardingScreen = ({ onComplete }) => {
         <div className="anim-fade-in" style={{ flex:1, padding:"0 24px 48px", display:"flex", flexDirection:"column" }}>
           {/* Feature list */}
           <div style={{ marginBottom:36, display:"flex", flexDirection:"column", gap:14 }}>
-            {[
-              ["📸","Dokumenter retter med AI-godkjenning"],
-              ["🎁","Vinn kuponger for gratis brus"],
-              ["👑","Klatr ligaen fra Mat-Aspirant til Kulinarisk VIP"],
-              ["🔖","Lagre favorittrettene dine"],
-            ].map(([icon, text]) => (
+            {t('ob_features').map(([icon, text]) => (
               <div key={text} style={{ display:"flex", alignItems:"center", gap:14 }}>
                 <div style={{
                   width:38, height:38, flexShrink:0, borderRadius:10,
@@ -2030,10 +2320,10 @@ const OnboardingScreen = ({ onComplete }) => {
               background:"#D4AF37", border:"none", borderRadius:14, cursor:"pointer",
               fontSize:16, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.04em"
             }}>
-              Opprett min profil →
+              {t('ob_cta')}
             </button>
             <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"12px 0 0", lineHeight:1.5 }}>
-              Ved å fortsette godtar du våre vilkår og personvernerklæring
+              {t('ob_terms')}
             </p>
           </div>
         </div>
@@ -2042,15 +2332,15 @@ const OnboardingScreen = ({ onComplete }) => {
       {step === 2 && (
         <div className="anim-fade-in" style={{ flex:1, padding:"0 24px 48px", overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
           <div style={{ marginBottom:28 }}>
-            <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, margin:"0 0 6px" }}>Fortell oss hvem du er</h2>
-            <p style={{ color:"#555", fontSize:14, margin:0 }}>Kun synlig for deg og restaurantene</p>
+            <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, margin:"0 0 6px" }}>{t('ob_form_title')}</h2>
+            <p style={{ color:"#555", fontSize:14, margin:0 }}>{t('ob_form_subtitle')}</p>
           </div>
 
           {/* Navn */}
           <div style={{ marginBottom:18 }}>
-            <label style={labelStyle}>Fullt navn</label>
+            <label style={labelStyle}>{t('ob_name_label')}</label>
             <input
-              type="text" placeholder="Ola Nordmann"
+              type="text" placeholder={t('ob_name_ph')}
               value={navn} onChange={e => { setNavn(e.target.value); setErrors(p => ({...p,navn:undefined})); }}
               style={inputStyle(errors.navn)}
             />
@@ -2059,9 +2349,9 @@ const OnboardingScreen = ({ onComplete }) => {
 
           {/* Telefon */}
           <div style={{ marginBottom:18 }}>
-            <label style={labelStyle}>Telefonnummer</label>
+            <label style={labelStyle}>{t('ob_phone_label')}</label>
             <input
-              type="tel" placeholder="+47 900 00 000"
+              type="tel" placeholder={t('ob_phone_ph')}
               value={tlf} onChange={e => { setTlf(e.target.value); setErrors(p => ({...p,tlf:undefined})); }}
               style={inputStyle(errors.tlf)}
             />
@@ -2070,9 +2360,9 @@ const OnboardingScreen = ({ onComplete }) => {
 
           {/* E-post */}
           <div style={{ marginBottom:32 }}>
-            <label style={labelStyle}>E-postadresse</label>
+            <label style={labelStyle}>{t('ob_email_label')}</label>
             <input
-              type="email" placeholder="ola@example.com"
+              type="email" placeholder={t('ob_email_ph')}
               value={epost} onChange={e => { setEpost(e.target.value); setErrors(p => ({...p,epost:undefined})); }}
               style={inputStyle(errors.epost)}
             />
@@ -2089,16 +2379,16 @@ const OnboardingScreen = ({ onComplete }) => {
             {saving ? (
               <>
                 <div className="anim-spin" style={{ width:18, height:18, border:"2px solid #0D0D0D", borderTop:"2px solid transparent", borderRadius:"50%" }} />
-                Oppretter profil…
+                {t('ob_saving')}
               </>
-            ) : "Kom i gang ✦"}
+            ) : t('ob_submit')}
           </button>
 
           <button onClick={() => setStep(1)} style={{
             width:"100%", padding:"13px", marginTop:10,
             background:"transparent", border:"none", cursor:"pointer",
             fontSize:13, color:"#444"
-          }}>← Tilbake</button>
+          }}>{t('ob_back')}</button>
         </div>
       )}
     </div>
@@ -2108,6 +2398,10 @@ const OnboardingScreen = ({ onComplete }) => {
 /* ═══════════════════════════ APP ═══════════════════════════ */
 
 const App = () => {
+  const [lang, setLang] = useState(() => localStorage.getItem('dishy_lang') || 'no');
+
+  useEffect(() => { localStorage.setItem('dishy_lang', lang); }, [lang]);
+
   const [user,               setUser]               = useState(() => {
     try { return JSON.parse(localStorage.getItem('dishy_user')) || null; } catch { return null; }
   });
@@ -2257,13 +2551,16 @@ const App = () => {
 
   if (!user) {
     return (
-      <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto" }}>
-        <OnboardingScreen onComplete={handleRegister} />
-      </div>
+      <LangContext.Provider value={{ lang, setLang }}>
+        <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto" }}>
+          <OnboardingScreen onComplete={handleRegister} />
+        </div>
+      </LangContext.Provider>
     );
   }
 
   return (
+    <LangContext.Provider value={{ lang, setLang }}>
     <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" }}>
 
       {/* Hidden file input */}
@@ -2361,6 +2658,7 @@ const App = () => {
       {/* Points toast */}
       <PointsToast points={totalPoints} visible={showToast} />
     </div>
+    </LangContext.Provider>
   );
 };
 
