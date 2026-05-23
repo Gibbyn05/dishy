@@ -62,7 +62,9 @@ const TRANSLATIONS = {
     // Nav
     nav_explore: "Utforsk", nav_profile: "Profil",
     // Discover
-    discover_gps: "📍 GPS — Molde sentrum",
+    discover_gps_ok:      "📍 GPS aktiv",
+    discover_gps_pending: "📍 Henter posisjon…",
+    discover_gps_denied:  "📍 Molde sentrum",
     discover_h1: "Eksklusive menyer", discover_h2: "i nærheten av deg",
     discover_badge: "✨ Bildemeny tilgjengelig",
     discover_daily_label: "✦ Dagens Gylne Anbefaling",
@@ -181,7 +183,9 @@ const TRANSLATIONS = {
     // Nav
     nav_explore: "Explore", nav_profile: "Profile",
     // Discover
-    discover_gps: "📍 GPS — Molde centre",
+    discover_gps_ok:      "📍 GPS active",
+    discover_gps_pending: "📍 Locating you…",
+    discover_gps_denied:  "📍 Molde centre",
     discover_h1: "Exclusive menus", discover_h2: "near you",
     discover_badge: "✨ Photo menu available",
     discover_daily_label: "✦ Today's Golden Pick",
@@ -298,9 +302,421 @@ const TRANSLATIONS = {
   },
 };
 
+/* ═══════════════════════════ DISTANCE ═══════════════════════════ */
+
+const haversine = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000;
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const formatDist = (meters, lang = 'no') => {
+  if (meters < 1000) {
+    const m = Math.round(meters / 10) * 10 || 10;
+    return lang === 'en' ? `${m}m away` : `${m}m unna`;
+  }
+  const km = (meters / 1000).toFixed(1);
+  return lang === 'en' ? `${km}km away` : `${km}km unna`;
+};
+
 /* ═══════════════════════════ DATA ═══════════════════════════ */
 
 const RESTAURANTS = [
+
+  /* ── 1. Køl Bar & Bistro · Torget 1 ── */
+  {
+    id: 1, name: "Køl Bar & Bistro", cuisine: "Bistro & Sjømat",
+    address: "Torget 1, 6413 Molde",
+    coords: { lat: 62.7362, lng: 7.1560 },
+    bg: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Snacks: [
+        { id:101, name:"Huître",                   price:"65,-",  rating:4.9, reviews:22, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1606731219412-3b066d3bbde0?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1606731219412-3b066d3bbde0?w=900&auto=format&fit=crop",
+          ingredients:"Ferske østersmerker, sitron, Mignonette (rødvinseddik, sjalottløk). Allergener: Bløtdyr." },
+        { id:102, name:"Kalix Løyrom 100g",        price:"895,-", rating:4.9, reviews:11, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=900&auto=format&fit=crop",
+          ingredients:"Kalix løyrom, blinis, crème fraîche, sjalottløk, gressløk. Allergener: Fisk, Melk, Egg, Hvete." },
+        { id:103, name:"Hjemmelaget Brød",          price:"65,-",  rating:4.6, reviews:34, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=900&auto=format&fit=crop",
+          ingredients:"Surdeigbrød bakt daglig, usaltet smør. Allergener: Hvete, Melk." },
+        { id:104, name:"Wagyu A5 110g",             price:"690,-", rating:5.0, reviews:7,  uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1558030006-450675393462?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1558030006-450675393462?w=900&auto=format&fit=crop",
+          ingredients:"Japansk A5 Wagyu, fleur de sel, sitron. Allergener: Ingen." },
+      ],
+      Forretter: [
+        { id:105, name:"Sjøkreps",                  price:"295,-", rating:4.9, reviews:18, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
+          ingredients:"Grillet norsk sjøkreps, urtesmør, ristet surdeig. Allergener: Skalldyr, Melk, Hvete." },
+        { id:106, name:"Moules Marinières",         price:"215,-", rating:4.7, reviews:25, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=900&auto=format&fit=crop",
+          ingredients:"Blåskjell dampet i hvitløk, fløte, hvitvin, persille, med brød. Allergener: Bløtdyr, Melk, Hvete." },
+        { id:107, name:"Snegler",                   price:"225,-", rating:4.6, reviews:14, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=900&auto=format&fit=crop",
+          ingredients:"12 bourguignon-snegler, urtesmør med hvitløk og persille, ristet brød. Allergener: Melk, Hvete." },
+      ],
+      Plats: [
+        { id:108, name:"Dagens Fangst",             price:"495,-", rating:4.8, reviews:29, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&auto=format&fit=crop",
+          ingredients:"Fisk fra lokal leverandør, sesongbasert tilbehør og saus. Allergener: Fisk, Melk." },
+        { id:109, name:"Lammecarré",                price:"565,-", rating:4.9, reviews:16, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1529042410759-befb1204b468?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=900&auto=format&fit=crop",
+          ingredients:"Glaserte gulrøtter, pastinakkpuré, potetpuré, bordelaisesaus. Allergener: Melk." },
+        { id:110, name:"Entrecôte",                 price:"525,-", rating:4.8, reviews:21, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&auto=format&fit=crop",
+          ingredients:"Haricots verts, grønn salat, Béarnaisesaus, pommes frites. Allergener: Egg, Melk, Hvete." },
+      ],
+      Dessert: [
+        { id:111, name:"Crème Brûlée",              price:"165,-", rating:4.8, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=900&auto=format&fit=crop",
+          ingredients:"Klassisk vanilje crème brûlée, friske bær. Allergener: Egg, Melk." },
+        { id:112, name:"Sjokoladefondant",          price:"175,-", rating:4.7, reviews:15, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=900&auto=format&fit=crop",
+          ingredients:"Varm sjokoladefondant, vanilje sorbet. Allergener: Egg, Melk, Hvete." },
+      ],
+    }
+  },
+
+  /* ── 2. Glass Bar & Restaurant · Torget 1 ── */
+  {
+    id: 2, name: "Glass Bar & Restaurant", cuisine: "Italiensk & Bar",
+    address: "Torget 1, 6413 Molde",
+    coords: { lat: 62.7364, lng: 7.1563 },
+    bg: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Forretter: [
+        { id:201, name:"Blåskjell",                 price:"195,-", rating:4.7, reviews:31, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=900&auto=format&fit=crop",
+          ingredients:"Dampet i hvitløk, chili, persille, selleri, hvitvin, tomat. Serveres med brød. Allergener: Bløtdyr, Hvete." },
+        { id:202, name:"Carpaccio",                 price:"245,-", rating:4.8, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&auto=format&fit=crop",
+          ingredients:"Tynnskåret storfekjøtt, steinsoppmajones, ruccola, trøffelpecorino. Allergener: Egg, Melk." },
+        { id:203, name:"Bisque",                    price:"225,-", rating:4.6, reviews:22, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=900&auto=format&fit=crop",
+          ingredients:"Kremet skalldyrsuppe, dagens fangst, reker, blåskjell, fennikel, brød. Allergener: Skalldyr, Bløtdyr, Melk, Hvete." },
+      ],
+      Pasta: [
+        { id:204, name:"Pasta Carbonara",           price:"295,-", rating:4.7, reviews:38, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=900&auto=format&fit=crop",
+          ingredients:"Guanciale, pecorino, egg, fløte, sort pepper. Allergener: Egg, Melk, Hvete." },
+        { id:205, name:"Pasta allo Scoglio",        price:"345,-", rating:4.8, reviews:27, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=900&auto=format&fit=crop",
+          ingredients:"Blåskjell, reker, dagens fangst, tomatsaus, hvitløk, chili. Allergener: Skalldyr, Bløtdyr, Fisk, Hvete." },
+        { id:206, name:"Tortelloni di Ricotta",     price:"260,-", rating:4.5, reviews:18, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=900&auto=format&fit=crop",
+          ingredients:"Spinat- og ricottatortelloni, kremet pecorinosaus, parmesan, spinat. Allergener: Egg, Melk, Hvete." },
+      ],
+      Pizza: [
+        { id:207, name:"Parma",                     price:"295,-", rating:4.8, reviews:44, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&auto=format&fit=crop",
+          ingredients:"Parmaskinke, ruccola, parmesan, tomatbunn. Allergener: Melk, Hvete." },
+        { id:208, name:"Margherita",                price:"255,-", rating:4.6, reviews:52, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=900&auto=format&fit=crop",
+          ingredients:"Bøffelmozzarella, fersk basilikum, tomatbunn. Allergener: Melk, Hvete." },
+        { id:209, name:"Quattro Formaggi",          price:"275,-", rating:4.7, reviews:33, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&auto=format&fit=crop",
+          ingredients:"Comté, cheddar, parmesan, gorgonzola. Allergener: Melk, Hvete." },
+      ],
+      Hovedretter: [
+        { id:210, name:"Indrefilet av Storfe",      price:"550,-", rating:4.9, reviews:23, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&auto=format&fit=crop",
+          ingredients:"Brokkolini, delikatesseløk, piquillapaprika, rødvinssaus, fries. Allergener: Melk, Hvete." },
+        { id:211, name:"Gratinert Klippfisk",       price:"565,-", rating:4.8, reviews:17, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&auto=format&fit=crop",
+          ingredients:"Klippfisk fra Sigurd Folland, n'duja-smør, bacon, sellerirotpuré. Allergener: Fisk, Melk." },
+      ],
+    }
+  },
+
+  /* ── 3. Rød · Storgata 19 ── */
+  {
+    id: 3, name: "Rød", cuisine: "Burger & Pizza",
+    address: "Storgata 19, 6413 Molde",
+    coords: { lat: 62.7381, lng: 7.1612 },
+    bg: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Pizza: [
+        { id:301, name:"Pepperoni",                 price:"225,-", rating:4.6, reviews:47, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&auto=format&fit=crop",
+          ingredients:"Tomatsaus, mozzarella, pepperoni, jalapeño, soltørkede tomater. Allergener: Melk, Hvete." },
+        { id:302, name:"Truffle Forest",            price:"195,-", rating:4.8, reviews:29, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=900&auto=format&fit=crop",
+          ingredients:"Kremet trøffelsaus, mozzarella, østerssopp, høvlet parmesan, ruccola. Allergener: Melk, Hvete." },
+        { id:303, name:"4 Cheese",                  price:"195,-", rating:4.7, reviews:36, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&auto=format&fit=crop",
+          ingredients:"Tomatsaus, mozzarella, cheddar, gorgonzola, høvlet parmesan. Allergener: Melk, Hvete." },
+      ],
+      Burgere: [
+        { id:304, name:"Bare Blå Classic",          price:"189,-", rating:4.5, reviews:58, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop",
+          ingredients:"Ferskt kjøttdeig, salat, tomat, rødløk, sylteagurk, hjemmelaget dressing. Allergener: Gluten, Egg, Melk." },
+        { id:305, name:"Bearnaise Royale",          price:"229,-", rating:4.7, reviews:42, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1586816001966-79b736744398?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1586816001966-79b736744398?w=900&auto=format&fit=crop",
+          ingredients:"Dobbel patty, bearnaisesaus, ristede løkringer, cheddar, bacon. Allergener: Gluten, Egg, Melk." },
+      ],
+      Hovderetter: [
+        { id:306, name:"Spare Ribs",                price:"369,-", rating:4.8, reviews:63, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1544025162-d76694265947?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1544025162-d76694265947?w=900&auto=format&fit=crop",
+          ingredients:"Langtidsovnbakte spareribs, glasert med BBQ-saus, coleslaw og pommes frites. Allergener: Melk, Hvete." },
+        { id:307, name:"Tenderloin 160g",           price:"489,-", rating:4.9, reviews:27, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1529042410759-befb1204b468?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=900&auto=format&fit=crop",
+          ingredients:"Grillet indrefilet, grønnsaker, valgfri saus (pepper, bearnaise eller rødvin), pommes frites. Allergener: Melk, Egg, Hvete." },
+        { id:308, name:"Gratinert Klippfisk",       price:"389,-", rating:4.6, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&auto=format&fit=crop",
+          ingredients:"Klippfisk gratinert med rømme, karamellisert løk og mozzarella, servert med potet. Allergener: Fisk, Melk." },
+      ],
+    }
+  },
+
+  /* ── 4. Restaurant Amalie · Amtmann Krohgs gate 5 ── */
+  {
+    id: 4, name: "Restaurant Amalie", cuisine: "Indisk & Norsk",
+    address: "Amtmann Krohgs gate 5, 6413 Molde",
+    coords: { lat: 62.7354, lng: 7.1543 },
+    bg: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Forretter: [
+        { id:401, name:"Vegetarsamosa (2 stk)",     price:"129,-", rating:4.5, reviews:24, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=900&auto=format&fit=crop",
+          ingredients:"Sprø samosa fylt med ert, potet og krydder, servert med myntemintchutney. Allergener: Hvete." },
+        { id:402, name:"Chicken Tikka",             price:"175,-", rating:4.7, reviews:31, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=900&auto=format&fit=crop",
+          ingredients:"Saftig marinert kylling grillet i tandoorovn, servert med myntechutney og rødløksalat. Allergener: Melk." },
+      ],
+      Curry: [
+        { id:403, name:"Chicken Tikka Masala",      price:"269,-", rating:4.8, reviews:56, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1574484284002-952d92456975?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=900&auto=format&fit=crop",
+          ingredients:"Grillet kylling i kremet tomatbasert curry, servert med ris og naan. Allergener: Melk, Hvete." },
+        { id:404, name:"Lamb Rogan Josh",           price:"289,-", rating:4.7, reviews:38, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=900&auto=format&fit=crop",
+          ingredients:"Mørt lammekjøtt langtidskokt i aromatisk kashmirsk saus med røde chili og krydder, med ris. Allergener: Ingen." },
+        { id:405, name:"Dal Makhani",               price:"225,-", rating:4.4, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=900&auto=format&fit=crop",
+          ingredients:"Svarte linser og kidneybønner i smørrik tomatsaus, med ris og naan. Allergener: Melk, Hvete." },
+      ],
+      Tandoor: [
+        { id:406, name:"Garlic Naan",               price:"59,-",  rating:4.8, reviews:72, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=900&auto=format&fit=crop",
+          ingredients:"Hjemmelaget naan med hvitløksmør og fersk koriander fra tandoorovn. Allergener: Melk, Hvete." },
+        { id:407, name:"Chicken Biryani",           price:"265,-", rating:4.6, reviews:29, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=900&auto=format&fit=crop",
+          ingredients:"Dufting basmatiris tilberedt med safranmarinert kylling, ristede løk og mynteyoghurt. Allergener: Melk." },
+      ],
+    }
+  },
+
+  /* ── 5. Egon · Storgata 8 ── */
+  {
+    id: 5, name: "Egon", cuisine: "Grill & Pizza",
+    address: "Storgata 8, 6413 Molde",
+    coords: { lat: 62.7375, lng: 7.1596 },
+    bg: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Pizza: [
+        { id:501, name:"Vesuvio",                   price:"249,-", rating:4.4, reviews:53, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&auto=format&fit=crop",
+          ingredients:"Tomatsaus, mozzarella, serranoskinkke, frisk basilikum, olivenolje. Allergener: Melk, Hvete." },
+        { id:502, name:"Pepperoni",                 price:"249,-", rating:4.5, reviews:61, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=900&auto=format&fit=crop",
+          ingredients:"Tomatsaus, mozzarella, pepperoni, paprika. Allergener: Melk, Hvete." },
+      ],
+      Burgere: [
+        { id:503, name:"Egon Classic",              price:"199,-", rating:4.3, reviews:84, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop",
+          ingredients:"Ferskt kjøttdeig 150g, salat, tomat, agurk, rødløk, cheddar, Egon-dressing, pommes frites. Allergener: Gluten, Egg, Melk." },
+        { id:504, name:"BBQ Bacon",                 price:"229,-", rating:4.5, reviews:67, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1586816001966-79b736744398?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1586816001966-79b736744398?w=900&auto=format&fit=crop",
+          ingredients:"Kjøttdeig 150g, bacon, cheddar, BBQ-saus, sprøstekt løk, pommes frites. Allergener: Gluten, Egg, Melk." },
+      ],
+      Pasta: [
+        { id:505, name:"Spaghetti Bolognese",       price:"199,-", rating:4.3, reviews:48, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=900&auto=format&fit=crop",
+          ingredients:"Hjemmelaget kjøttsaus, spaghetti, parmesan, fersk basilikum. Allergener: Gluten, Egg, Melk." },
+        { id:506, name:"Pasta Carbonara",           price:"229,-", rating:4.4, reviews:39, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=900&auto=format&fit=crop",
+          ingredients:"Bacon, egg, pecorino, sort pepper, spaghetti. Allergener: Gluten, Egg, Melk." },
+      ],
+    }
+  },
+
+  /* ── 6. Smile Thai & Sushi · Torget 4 ── */
+  {
+    id: 6, name: "Smile Thai & Sushi", cuisine: "Thai & Sushi",
+    address: "Torget 4, 6413 Molde",
+    coords: { lat: 62.7366, lng: 7.1571 },
+    bg: "https://images.unsplash.com/photo-1562802378-063ec186a863?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Thai: [
+        { id:601, name:"Pad Thai",                  price:"185,-", rating:4.7, reviews:66, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1559314809-0d155014e29e?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=900&auto=format&fit=crop",
+          ingredients:"Risnudler med kylling, bønnespirer, vårløk og peanøtter, tamarind-saus. Allergener: Peanøtter, Soya, Egg." },
+        { id:602, name:"Pa Naeng",                  price:"195,-", rating:4.8, reviews:44, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=900&auto=format&fit=crop",
+          ingredients:"Kremet panang-curry med kylling, brokkoli, sukkererter og ris. Allergener: Melk (kokosnøtt)." },
+        { id:603, name:"Tom Yam Goong",             price:"175,-", rating:4.6, reviews:38, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=900&auto=format&fit=crop",
+          ingredients:"Krydret rekesupppe med kokosmjølk, sitrongress, ingefær og sopp. Allergener: Skalldyr." },
+      ],
+      Sushi: [
+        { id:604, name:"Laks Maki (8 biter)",       price:"149,-", rating:4.6, reviews:52, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=900&auto=format&fit=crop",
+          ingredients:"Fersk laks, sushiris, noriblad, servert med wasabi og syltet ingefær. Allergener: Fisk, Gluten, Soya." },
+        { id:605, name:"Smile Roll",                price:"195,-", rating:4.8, reviews:39, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1553621042-f6e147245754?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=900&auto=format&fit=crop",
+          ingredients:"Laks, mango og kremost, toppet med teriyaki og chilimajones. Allergener: Fisk, Egg, Gluten, Soya." },
+        { id:606, name:"Nigiri 1 (2 biter)",        price:"99,-",  rating:4.5, reviews:28, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1617196034099-1b5d95de8fdb?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1617196034099-1b5d95de8fdb?w=900&auto=format&fit=crop",
+          ingredients:"Fersk laksenigi over sushiris, wasabi, syltet ingefær. Allergener: Fisk, Gluten, Soya." },
+      ],
+    }
+  },
+
+  /* ── 7. Restaurant Hav · Molde Fjordhotell · Julsundveien 6 ── */
+  {
+    id: 7, name: "Restaurant Hav", cuisine: "Sjømat & Signaturmeny",
+    address: "Julsundveien 6, 6412 Molde",
+    coords: { lat: 62.7400, lng: 7.1672 },
+    bg: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Forretter: [
+        { id:701, name:"Tataki av ytrefilet",       price:"215,-", rating:4.7, reviews:22, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=900&auto=format&fit=crop",
+          ingredients:"Norsk ytrefilet, ponzusaus, sitrongress-majones, stekt ingefær. Allergener: Soya, Sesam, Egg." },
+        { id:702, name:"Kremet fiskesuppe",         price:"215,-", rating:4.8, reviews:34, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=900&auto=format&fit=crop",
+          ingredients:"Fisk, skalldyr og grønnsaker i kremet suppe. Allergener: Fisk, Skalldyr, Melk." },
+        { id:703, name:"Gratinert sjøkreps",        price:"245,-", rating:4.9, reviews:17, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
+          ingredients:"Norsk sjøkreps, crudité og urtemajonés. Allergener: Skalldyr, Egg." },
+      ],
+      Hovderetter: [
+        { id:704, name:"Gratinert klippfisk",       price:"545,-", rating:4.9, reviews:21, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&auto=format&fit=crop",
+          ingredients:"Klippfisk fra Sigurd Folland, ertepuré, bacon, gulrøtter, syltet rødløk, brun smør og potetpuré. Allergener: Fisk, Melk." },
+        { id:705, name:"Carré av lam",              price:"495,-", rating:4.9, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1529042410759-befb1204b468?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=900&auto=format&fit=crop",
+          ingredients:"Sellerikrem, rotgrønnsaker, syltede småløk, rotchips, rosmarin saus, ovnsbakte poteter. Allergener: Melk." },
+        { id:706, name:"Dagens fisk",               price:"495,-", rating:4.8, reviews:15, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=900&auto=format&fit=crop",
+          ingredients:"Fisk fra vår 5-retters signaturmeny, sesongbasert tilbehør. Allergener: Fisk, Melk." },
+      ],
+      Dessert: [
+        { id:707, name:"Sjokoladefondant",          price:"195,-", rating:4.8, reviews:18, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=900&auto=format&fit=crop",
+          ingredients:"Hjemmelaget sjokoladefondant, vaniljeis, bringebær fra Valldal. Allergener: Egg, Melk, Hvete." },
+        { id:708, name:"Lokale oster",              price:"225,-", rating:4.7, reviews:13, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=900&auto=format&fit=crop",
+          ingredients:"Kraftkar fra Tingvoll og lokale oster, nøttebrød og marmelade fra Valldal. Allergener: Melk, Hvete, Nøtter." },
+      ],
+    }
+  },
+
+  /* ── 8. Vardestua · Varden, Molde ── */
+  {
+    id: 8, name: "Vardestua", cuisine: "Tradisjonell Norsk",
+    address: "Vardekleiva 2, 6415 Molde",
+    coords: { lat: 62.7295, lng: 7.2034 },
+    bg: "https://images.unsplash.com/photo-1481833761820-0509d3217039?w=900&auto=format&fit=crop&q=80",
+    menu: {
+      Småretter: [
+        { id:801, name:"Hjemmelaget suppe",         price:"145,-", rating:4.7, reviews:28, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=900&auto=format&fit=crop",
+          ingredients:"Dagens suppe med sesongens grønnsaker og urter, hjemmebakt brød. Allergener: Hvete, Melk." },
+        { id:802, name:"Rømmegrøt",                 price:"125,-", rating:4.6, reviews:19, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1607920592519-bab95616c2da?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1607920592519-bab95616c2da?w=900&auto=format&fit=crop",
+          ingredients:"Tradisjonell norsk rømmegrøt med smør, sukker og kanel, servert med flatbrød. Allergener: Melk, Hvete." },
+      ],
+      Tradisjonell: [
+        { id:803, name:"Kjøttkaker med brunsaus",   price:"245,-", rating:4.8, reviews:42, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=900&auto=format&fit=crop",
+          ingredients:"Hjemmelagde kjøttkaker, brun saus, stuede erter, kokte poteter og tyttebær. Allergener: Gluten, Egg." },
+        { id:804, name:"Svinekoteletter",           price:"265,-", rating:4.5, reviews:31, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1432139509613-5c4255815697?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=900&auto=format&fit=crop",
+          ingredients:"Grillede svinekoteletter, surkål, kokte poteter, eplemost-saus. Allergener: Melk." },
+        { id:805, name:"Pinnekjøtt (sesong)",       price:"345,-", rating:4.9, reviews:16, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&auto=format&fit=crop",
+          ingredients:"Saltet og tørket lammeribbe dampet på bjørkekvister, kålrotstappe, kokte poteter. Allergener: Ingen." },
+      ],
+      Kafé: [
+        { id:806, name:"Vafler med rømme",          price:"95,-",  rating:4.8, reviews:67, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1619410283995-43d9134e7656?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1619410283995-43d9134e7656?w=900&auto=format&fit=crop",
+          ingredients:"Hjemmelagde hjerteformede vafler med rømme og syltetøy. Allergener: Egg, Melk, Hvete." },
+        { id:807, name:"Hjemmelaget kake",          price:"89,-",  rating:4.7, reviews:54, uploaded:false,
+          thumb:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=900&auto=format&fit=crop",
+          ingredients:"Dagens kake bakt av kokken, servert med kaffe eller te. Allergener: Egg, Melk, Hvete." },
+      ],
+    }
+  },
+
+];
 
   /* ── 1. Køl Bar & Bistro  ·  Torget 1 ── */
   {
@@ -740,7 +1156,7 @@ const RESTAURANTS = [
 
 ];
 
-const CATEGORIES = ["Småretter","Hovedretter","Snacks","Dessert"];
+const CATEGORIES = ["Småretter","Forretter","Snacks","Hovderetter","Tradisjonell","Dessert","Kafé"];
 
 /* ═══════════════════════════ LEAGUES ═══════════════════════════ */
 
@@ -791,9 +1207,9 @@ const getTasteTags = (dish, lang = 'no') => {
 
 const DAILY_REC = {
   restaurantName: "Køl Bar & Bistro",
-  name: "Langoustine med aioli",
-  price: "225,-",
-  count: 8,
+  name: "Sjøkreps",
+  price: "295,-",
+  count: 6,
   hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
 };
 
@@ -1227,9 +1643,10 @@ const LangToggle = () => {
   );
 };
 
-const DiscoverScreen = ({ restaurants, onSelect }) => {
+const DiscoverScreen = ({ restaurants, onSelect, geoStatus }) => {
   const { lang } = useLang();
   const t = key => TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.no[key];
+  const gpsLabel = t(geoStatus === 'ok' ? 'discover_gps_ok' : geoStatus === 'pending' ? 'discover_gps_pending' : 'discover_gps_denied');
   return (
   <div style={{ background:"#0D0D0D", minHeight:"100vh", paddingBottom:80 }}>
     {/* Header */}
@@ -1257,7 +1674,7 @@ const DiscoverScreen = ({ restaurants, onSelect }) => {
     {/* Tagline */}
     <div style={{ padding:"28px 20px 16px" }}>
       <p style={{ color:"#555", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>
-        {t('discover_gps')}
+        {gpsLabel}
       </p>
       <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, lineHeight:1.25, margin:0 }}>
         {t('discover_h1')}<br />
@@ -1421,7 +1838,7 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
         <div style={{ position:"absolute", bottom:16, left:20, right:20 }}>
           <h2 style={{ color:"#fff", fontSize:24, fontWeight:800, margin:"0 0 2px" }}>{restaurant.name}</h2>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ color:"#D4AF37", fontSize:12 }}>📍 {restaurant.distance}</span>
+            <span style={{ color:"#D4AF37", fontSize:12 }}>📍 {restaurant.address || restaurant.distance}</span>
             <span style={{ color:"#444", fontSize:12 }}>·</span>
             <span style={{ color:"#777", fontSize:12 }}>{restaurant.cuisine}</span>
           </div>
@@ -2399,8 +2816,19 @@ const OnboardingScreen = ({ onComplete }) => {
 
 const App = () => {
   const [lang, setLang] = useState(() => localStorage.getItem('dishy_lang') || 'no');
+  const [userPos,   setUserPos]   = useState(null);
+  const [geoStatus, setGeoStatus] = useState('pending'); // 'pending' | 'ok' | 'denied'
 
   useEffect(() => { localStorage.setItem('dishy_lang', lang); }, [lang]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) { setGeoStatus('denied'); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => { setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGeoStatus('ok'); },
+      ()  => setGeoStatus('denied'),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+    );
+  }, []);
 
   const [user,               setUser]               = useState(() => {
     try { return JSON.parse(localStorage.getItem('dishy_user')) || null; } catch { return null; }
@@ -2431,16 +2859,25 @@ const App = () => {
     }
   };
 
-  // Restaurants with uploaded state merged in
-  const restaurantsWithState = RESTAURANTS.map(r => ({
-    ...r,
-    menu: Object.fromEntries(
-      Object.entries(r.menu).map(([cat, dishes]) => [
-        cat,
-        dishes.map(d => ({ ...d, uploaded: uploadedDishes.has(d.id) }))
-      ])
-    )
-  }));
+  // Restaurants with uploaded state + live distance merged in
+  const restaurantsWithState = RESTAURANTS.map(r => {
+    const distMeters = userPos ? haversine(userPos.lat, userPos.lng, r.coords.lat, r.coords.lng) : null;
+    const distance = distMeters !== null
+      ? formatDist(distMeters, lang)
+      : geoStatus === 'pending'
+        ? (lang === 'en' ? 'Locating…' : 'Henter posisjon…')
+        : (lang === 'en' ? 'Molde centre' : 'Molde sentrum');
+    return {
+      ...r,
+      distance,
+      menu: Object.fromEntries(
+        Object.entries(r.menu).map(([cat, dishes]) => [
+          cat,
+          dishes.map(d => ({ ...d, uploaded: uploadedDishes.has(d.id) }))
+        ])
+      )
+    };
+  });
 
   const currentRestaurant = selectedRestaurant
     ? restaurantsWithState.find(r => r.id === selectedRestaurant.id)
@@ -2593,6 +3030,7 @@ const App = () => {
             <DiscoverScreen
               restaurants={restaurantsWithState}
               onSelect={handleSelectRestaurant}
+              geoStatus={geoStatus}
             />
           )}
           {screen === 'restaurant' && currentRestaurant && !showImageModal && (
