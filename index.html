@@ -50,7 +50,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useCallback } = React;
 
 /* ═══════════════════════════ DATA ═══════════════════════════ */
 
@@ -1420,7 +1420,7 @@ const BottomNav = ({ activeTab, onTabChange }) => (
 
 /* ═══════════════════════════ PROFILE SCREEN ═══════════════════════════ */
 
-const ProfileScreen = ({ uploadCount, coupons, onUseCoupon, savedDishes, profileTab, setProfileTab }) => {
+const ProfileScreen = ({ user, uploadCount, coupons, onUseCoupon, savedDishes, profileTab, setProfileTab }) => {
   const league   = getLeague(uploadCount);
   const progress = getLeagueProgress(uploadCount);
   const motText  = getMotivationText(uploadCount);
@@ -1466,7 +1466,7 @@ const ProfileScreen = ({ uploadCount, coupons, onUseCoupon, savedDishes, profile
               <p style={{ color:"#666", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", margin:"0 0 5px" }}>
                 DISHY VIP MEMBER
               </p>
-              <h2 style={{ color:"#fff", fontSize:21, fontWeight:700, margin:0 }}>Markus Krakeli</h2>
+              <h2 style={{ color:"#fff", fontSize:21, fontWeight:700, margin:0 }}>{user?.navn || 'Gjest'}</h2>
             </div>
             <span style={{ fontSize:30, lineHeight:1 }}>{league.icon}</span>
           </div>
@@ -1727,9 +1727,172 @@ const PointsToast = ({ points, visible }) => (
   </div>
 );
 
+/* ═══════════════════════════ ONBOARDING ═══════════════════════════ */
+
+const OnboardingScreen = ({ onComplete }) => {
+  const [step,   setStep]   = useState(1); // 1 = velkommen, 2 = skjema
+  const [navn,   setNavn]   = useState('');
+  const [tlf,    setTlf]    = useState('');
+  const [epost,  setEpost]  = useState('');
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const validate = () => {
+    const e = {};
+    if (!navn.trim())                          e.navn  = 'Skriv inn ditt navn';
+    if (!/^\+?[\d\s]{8,}$/.test(tlf.trim()))  e.tlf   = 'Ugyldig telefonnummer';
+    if (!/\S+@\S+\.\S+/.test(epost.trim()))   e.epost = 'Ugyldig e-postadresse';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    setSaving(true);
+    setTimeout(() => {
+      onComplete({ navn: navn.trim(), tlf: tlf.trim(), epost: epost.trim() });
+    }, 900);
+  };
+
+  const inputStyle = err => ({
+    width:"100%", padding:"15px 16px",
+    background:"#111", border:`1px solid ${err ? "rgba(220,60,60,0.6)" : "rgba(212,175,55,0.22)"}`,
+    borderRadius:12, color:"#fff", fontSize:15,
+    WebkitAppearance:"none", appearance:"none",
+    transition:"border-color 0.2s"
+  });
+  const labelStyle = { color:"#888", fontSize:11, letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:6, display:"block" };
+  const errStyle   = { color:"rgba(220,80,80,0.9)", fontSize:12, marginTop:5 };
+
+  return (
+    <div className="anim-fade-in" style={{ background:"#0D0D0D", minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+
+      {/* Decorative gold top bar */}
+      <div style={{ height:3, background:"linear-gradient(90deg,#9A7D22,#F0D060,#D4AF37,#9A7D22)" }} />
+
+      {/* Hero section */}
+      <div style={{ padding:"48px 28px 32px", textAlign:"center" }}>
+        <div className="anim-gold-shimmer" style={{ fontSize:44, lineHeight:1, marginBottom:16 }}>👑</div>
+        <h1 className="gold-text-gradient" style={{ fontSize:30, fontWeight:900, letterSpacing:"0.1em", margin:"0 0 8px" }}>
+          DISHY
+        </h1>
+        <div style={{ width:40, height:1, background:"#D4AF37", margin:"0 auto 18px", opacity:0.6 }} />
+        <p style={{ color:"#ccc", fontSize:16, fontWeight:600, margin:"0 0 8px" }}>
+          Velkom til din eksklusive<br/>matopplevelse
+        </p>
+        <p style={{ color:"#555", fontSize:13, lineHeight:1.6, margin:0 }}>
+          Oppdag restauranter, dokumenter retter,<br/>og lås opp eksklusive fordeler.
+        </p>
+      </div>
+
+      {step === 1 && (
+        <div className="anim-fade-in" style={{ flex:1, padding:"0 24px 48px", display:"flex", flexDirection:"column" }}>
+          {/* Feature list */}
+          <div style={{ marginBottom:36, display:"flex", flexDirection:"column", gap:14 }}>
+            {[
+              ["📸","Dokumenter retter med AI-godkjenning"],
+              ["🎁","Vinn kuponger for gratis brus"],
+              ["👑","Klatr ligaen fra Mat-Aspirant til Kulinarisk VIP"],
+              ["🔖","Lagre favorittrettene dine"],
+            ].map(([icon, text]) => (
+              <div key={text} style={{ display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{
+                  width:38, height:38, flexShrink:0, borderRadius:10,
+                  background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)",
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:18
+                }}>{icon}</div>
+                <p style={{ color:"#bbb", fontSize:14, margin:0, lineHeight:1.4 }}>{text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop:"auto" }}>
+            <button onClick={() => setStep(2)} className="anim-pulse-gold" style={{
+              width:"100%", padding:"17px",
+              background:"#D4AF37", border:"none", borderRadius:14, cursor:"pointer",
+              fontSize:16, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.04em"
+            }}>
+              Opprett min profil →
+            </button>
+            <p style={{ color:"#333", fontSize:11, textAlign:"center", margin:"12px 0 0", lineHeight:1.5 }}>
+              Ved å fortsette godtar du våre vilkår og personvernerklæring
+            </p>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="anim-fade-in" style={{ flex:1, padding:"0 24px 48px", overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+          <div style={{ marginBottom:28 }}>
+            <h2 style={{ color:"#fff", fontSize:22, fontWeight:700, margin:"0 0 6px" }}>Fortell oss hvem du er</h2>
+            <p style={{ color:"#555", fontSize:14, margin:0 }}>Kun synlig for deg og restaurantene</p>
+          </div>
+
+          {/* Navn */}
+          <div style={{ marginBottom:18 }}>
+            <label style={labelStyle}>Fullt navn</label>
+            <input
+              type="text" placeholder="Ola Nordmann"
+              value={navn} onChange={e => { setNavn(e.target.value); setErrors(p => ({...p,navn:undefined})); }}
+              style={inputStyle(errors.navn)}
+            />
+            {errors.navn && <p style={errStyle}>{errors.navn}</p>}
+          </div>
+
+          {/* Telefon */}
+          <div style={{ marginBottom:18 }}>
+            <label style={labelStyle}>Telefonnummer</label>
+            <input
+              type="tel" placeholder="+47 900 00 000"
+              value={tlf} onChange={e => { setTlf(e.target.value); setErrors(p => ({...p,tlf:undefined})); }}
+              style={inputStyle(errors.tlf)}
+            />
+            {errors.tlf && <p style={errStyle}>{errors.tlf}</p>}
+          </div>
+
+          {/* E-post */}
+          <div style={{ marginBottom:32 }}>
+            <label style={labelStyle}>E-postadresse</label>
+            <input
+              type="email" placeholder="ola@example.com"
+              value={epost} onChange={e => { setEpost(e.target.value); setErrors(p => ({...p,epost:undefined})); }}
+              style={inputStyle(errors.epost)}
+            />
+            {errors.epost && <p style={errStyle}>{errors.epost}</p>}
+          </div>
+
+          <button onClick={handleSubmit} disabled={saving} style={{
+            width:"100%", padding:"17px",
+            background: saving ? "rgba(212,175,55,0.5)" : "#D4AF37",
+            border:"none", borderRadius:14, cursor: saving ? "default" : "pointer",
+            fontSize:16, fontWeight:800, color:"#0D0D0D", letterSpacing:"0.04em",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:10
+          }}>
+            {saving ? (
+              <>
+                <div className="anim-spin" style={{ width:18, height:18, border:"2px solid #0D0D0D", borderTop:"2px solid transparent", borderRadius:"50%" }} />
+                Oppretter profil…
+              </>
+            ) : "Kom i gang ✦"}
+          </button>
+
+          <button onClick={() => setStep(1)} style={{
+            width:"100%", padding:"13px", marginTop:10,
+            background:"transparent", border:"none", cursor:"pointer",
+            fontSize:13, color:"#444"
+          }}>← Tilbake</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* ═══════════════════════════ APP ═══════════════════════════ */
 
 const App = () => {
+  const [user,               setUser]               = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dishy_user')) || null; } catch { return null; }
+  });
   const [navTab,             setNavTab]             = useState('explore');
   const [profileTab,         setProfileTab]         = useState('coupons');
   const [screen,             setScreen]             = useState('discover');
@@ -1867,7 +2030,20 @@ const App = () => {
     });
   });
 
+  const handleRegister = userData => {
+    localStorage.setItem('dishy_user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
   const showNavBar = !showImageModal && !showCoupon;
+
+  if (!user) {
+    return (
+      <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto" }}>
+        <OnboardingScreen onComplete={handleRegister} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ background:"#0D0D0D", minHeight:"100vh", maxWidth:430, margin:"0 auto", position:"relative", overflow:"hidden" }}>
@@ -1917,6 +2093,7 @@ const App = () => {
       {/* Profile tab */}
       {navTab === 'profile' && (
         <ProfileScreen
+          user={user}
           uploadCount={uploadedDishes.size + 1}
           coupons={coupons}
           onUseCoupon={handleUseCouponFromProfile}
