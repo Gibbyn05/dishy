@@ -71,8 +71,8 @@ const RESTAURANTS = [
           hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
           ingredients:"Norsk langoustine, hjemmelaget aioli, sitron, fersk koriander. Allergener: Skalldyr, Egg." },
         { id:103, name:"Snegler med urtesmør",           price:"165,-", rating:4.6, reviews:11, uploaded:false,
-          thumb:"https://images.unsplash.com/photo-1551024506-0bccd828d307?w=200&auto=format&fit=crop",
-          hero: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=900&auto=format&fit=crop",
+          thumb:"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=200&auto=format&fit=crop",
+          hero: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=900&auto=format&fit=crop",
           ingredients:"Bourguignon-snegler, urtesmør med hvitløk og persille, sprø brioche. Allergener: Melk, Hvete." },
         { id:104, name:"Kalix rogn på brioche",          price:"175,-", rating:4.7, reviews:9, uploaded:false,
           thumb:"https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=200&auto=format&fit=crop",
@@ -545,7 +545,7 @@ const DAILY_REC = {
   restaurantName: "Køl Bar & Bistro",
   name: "Langoustine med aioli",
   price: "225,-",
-  note: "Kun 8 porsjoner igjen i dag",
+  count: 8,
   hero: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=900&auto=format&fit=crop",
 };
 
@@ -623,6 +623,11 @@ const IconShare = () => (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+);
+const IconBookmark = ({ filled }) => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill={filled ? "#D4AF37" : "none"} stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
   </svg>
 );
 const IconCompass = ({ active }) => (
@@ -1018,7 +1023,9 @@ const DiscoverScreen = ({ restaurants, onSelect }) => (
             <p style={{ color:"#888", fontSize:12, margin:"0 0 6px" }}>{DAILY_REC.restaurantName}</p>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
               <span style={{ color:"#D4AF37", fontSize:14, fontWeight:800 }}>{DAILY_REC.price}</span>
-              <span style={{ color:"#555", fontSize:11 }}>{DAILY_REC.note}</span>
+              <span style={{ color:"#777", fontSize:11 }}>
+                Kun <span style={{ color:"#E8643A", fontWeight:800, fontSize:13 }}>{DAILY_REC.count}</span> porsjoner igjen i dag
+              </span>
             </div>
           </div>
         </div>
@@ -1212,10 +1219,28 @@ const RestaurantScreen = ({ restaurant, onBack, onSelectDish }) => {
   );
 };
 
+const HeroImage = ({ src, alt }) => {
+  const [err, setErr] = useState(false);
+  if (err) return (
+    <div style={{
+      width:"100%", height:"100%",
+      background:"linear-gradient(160deg, #111 0%, #1a1a1a 100%)",
+      display:"flex", alignItems:"center", justifyContent:"center"
+    }}>
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.18)" strokeWidth="1.2" strokeLinecap="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </div>
+  );
+  return <img src={src} alt={alt} onError={() => setErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }} />;
+};
+
 /* ═══════════════════════════ DISH MODAL ═══════════════════════════ */
 
 const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
-  const [shareToast, setShareToast] = useState(false);
+  const [shareToast,  setShareToast]  = useState(false);
+  const [bookmarked,  setBookmarked]  = useState(false);
   const tasteTags = getTasteTags(dish);
 
   const handleShare = async () => {
@@ -1259,12 +1284,24 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
       transition:"transform 0.3s cubic-bezier(0.16,1,0.3,1)"
     }}>
       {/* Hero */}
-      <div style={{ position:"relative", height:255, flexShrink:0 }}>
-        <img src={dish.hero} alt={dish.name}
-          style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+      <div style={{ position:"relative", height:255, flexShrink:0, background:"#111" }}>
+        {dish.hero ? (
+          <HeroImage src={dish.hero} alt={dish.name} />
+        ) : (
+          <div style={{
+            width:"100%", height:"100%",
+            background:"linear-gradient(160deg, #111 0%, #1a1a1a 100%)",
+            display:"flex", alignItems:"center", justifyContent:"center"
+          }}>
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.18)" strokeWidth="1.2" strokeLinecap="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+        )}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg, #1A1A1A 0%, transparent 55%)" }} />
 
-        {/* Top-right: share + close */}
+        {/* Top-right: share + bookmark + close */}
         <div style={{ position:"absolute", top:14, right:14, display:"flex", gap:8 }}>
           <button onClick={handleShare} style={{
             background:"rgba(13,13,13,0.7)", border:"1px solid rgba(212,175,55,0.35)",
@@ -1272,6 +1309,15 @@ const DishModal = ({ dish, restaurantName, onClose, onUploadClick }) => {
             display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer"
           }}>
             <IconShare />
+          </button>
+          <button onClick={() => setBookmarked(b => !b)} style={{
+            background: bookmarked ? "rgba(212,175,55,0.18)" : "rgba(13,13,13,0.7)",
+            border:`1px solid ${bookmarked ? "#D4AF37" : "rgba(212,175,55,0.35)"}`,
+            borderRadius:"50%", width:34, height:34,
+            display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+            transition:"all 0.2s ease"
+          }}>
+            <IconBookmark filled={bookmarked} />
           </button>
           <button onClick={onClose} style={{
             background:"rgba(13,13,13,0.7)", border:"1px solid #333",
